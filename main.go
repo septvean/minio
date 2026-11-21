@@ -20,14 +20,14 @@ package main // import "github.com/minio/minio"
 //go:generate go install tool
 
 import (
-	"os"
+    "os"
 
-	// MUST be first import.
-	_ "github.com/minio/minio/internal/init"
+    // MUST be first import.
+    _ "github.com/minio/minio/internal/init"
 
-	minio "github.com/minio/minio/cmd"
+    minio "github.com/minio/minio/cmd"
 )
 
 func main() {
-	minio.Main(os.Args)
+    minio.Main(os.Args)
 }
