@@ -18,48 +18,48 @@
 package cmd
 
 import (
-	"context"
+    "context"
 )
 
 const (
-	memTotal     = "total"
-	memUsed      = "used"
-	memFree      = "free"
-	memBuffers   = "buffers"
-	memCache     = "cache"
-	memUsedPerc  = "used_perc"
-	memShared    = "shared"
-	memAvailable = "available"
+    memTotal     = "total"
+    memUsed      = "used"
+    memFree      = "free"
+    memBuffers   = "buffers"
+    memCache     = "cache"
+    memUsedPerc  = "used_perc"
+    memShared    = "shared"
+    memAvailable = "available"
 )
 
 var (
-	memTotalMD     = NewGaugeMD(memTotal, "Total memory on the node")
-	memUsedMD      = NewGaugeMD(memUsed, "Used memory on the node")
-	memUsedPercMD  = NewGaugeMD(memUsedPerc, "Used memory percentage on the node")
-	memFreeMD      = NewGaugeMD(memFree, "Free memory on the node")
-	memBuffersMD   = NewGaugeMD(memBuffers, "Buffers memory on the node")
-	memCacheMD     = NewGaugeMD(memCache, "Cache memory on the node")
-	memSharedMD    = NewGaugeMD(memShared, "Shared memory on the node")
-	memAvailableMD = NewGaugeMD(memAvailable, "Available memory on the node")
+    memTotalMD     = NewGaugeMD(memTotal, "Total memory on the node")
+    memUsedMD      = NewGaugeMD(memUsed, "Used memory on the node")
+    memUsedPercMD  = NewGaugeMD(memUsedPerc, "Used memory percentage on the node")
+    memFreeMD      = NewGaugeMD(memFree, "Free memory on the node")
+    memBuffersMD   = NewGaugeMD(memBuffers, "Buffers memory on the node")
+    memCacheMD     = NewGaugeMD(memCache, "Cache memory on the node")
+    memSharedMD    = NewGaugeMD(memShared, "Shared memory on the node")
+    memAvailableMD = NewGaugeMD(memAvailable, "Available memory on the node")
 )
 
 // loadMemoryMetrics - `MetricsLoaderFn` for node memory metrics.
 func loadMemoryMetrics(ctx context.Context, m MetricValues, c *metricsCache) error {
-	memMetrics, err := c.memoryMetrics.Get()
-	if err != nil {
-		metricsLogIf(ctx, err)
-		return err
-	}
+    memMetrics, err := c.memoryMetrics.Get()
+    if err != nil {
+        metricsLogIf(ctx, err)
+        return err
+    }
 
-	m.Set(memTotal, float64(memMetrics.Total))
-	m.Set(memUsed, float64(memMetrics.Used))
-	usedPerc := float64(memMetrics.Used) * 100 / float64(memMetrics.Total)
-	m.Set(memUsedPerc, usedPerc)
-	m.Set(memFree, float64(memMetrics.Free))
-	m.Set(memBuffers, float64(memMetrics.Buffers))
-	m.Set(memCache, float64(memMetrics.Cache))
-	m.Set(memShared, float64(memMetrics.Shared))
-	m.Set(memAvailable, float64(memMetrics.Available))
+    m.Set(memTotal, float64(memMetrics.Total))
+    m.Set(memUsed, float64(memMetrics.Used))
+    usedPerc := float64(memMetrics.Used) * 100 / float64(memMetrics.Total)
+    m.Set(memUsedPerc, usedPerc)
+    m.Set(memFree, float64(memMetrics.Free))
+    m.Set(memBuffers, float64(memMetrics.Buffers))
+    m.Set(memCache, float64(memMetrics.Cache))
+    m.Set(memShared, float64(memMetrics.Shared))
+    m.Set(memAvailable, float64(memMetrics.Available))
 
-	return nil
+    return nil
 }

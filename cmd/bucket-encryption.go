@@ -18,10 +18,10 @@
 package cmd
 
 import (
-	"errors"
-	"io"
+    "errors"
+    "io"
 
-	sse "github.com/minio/minio/internal/bucket/encryption"
+    sse "github.com/minio/minio/internal/bucket/encryption"
 )
 
 // BucketSSEConfigSys - in-memory cache of bucket encryption config
@@ -29,25 +29,25 @@ type BucketSSEConfigSys struct{}
 
 // NewBucketSSEConfigSys - Creates an empty in-memory bucket encryption configuration cache
 func NewBucketSSEConfigSys() *BucketSSEConfigSys {
-	return &BucketSSEConfigSys{}
+    return &BucketSSEConfigSys{}
 }
 
 // Get - gets bucket encryption config for the given bucket.
 func (sys *BucketSSEConfigSys) Get(bucket string) (*sse.BucketSSEConfig, error) {
-	sseCfg, _, err := globalBucketMetadataSys.GetSSEConfig(bucket)
-	return sseCfg, err
+    sseCfg, _, err := globalBucketMetadataSys.GetSSEConfig(bucket)
+    return sseCfg, err
 }
 
 // validateBucketSSEConfig parses bucket encryption configuration and validates if it is supported by MinIO.
 func validateBucketSSEConfig(r io.Reader) (*sse.BucketSSEConfig, error) {
-	encConfig, err := sse.ParseBucketSSEConfig(r)
-	if err != nil {
-		return nil, err
-	}
+    encConfig, err := sse.ParseBucketSSEConfig(r)
+    if err != nil {
+        return nil, err
+    }
 
-	if len(encConfig.Rules) == 1 {
-		return encConfig, nil
-	}
+    if len(encConfig.Rules) == 1 {
+        return encConfig, nil
+    }
 
-	return nil, errors.New("Unsupported bucket encryption configuration")
+    return nil, errors.New("Unsupported bucket encryption configuration")
 }

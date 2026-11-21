@@ -18,30 +18,30 @@
 package cmd
 
 import (
-	"context"
-	"errors"
-	"fmt"
-	"io"
-	"math"
-	"net/url"
-	"strings"
+    "context"
+    "errors"
+    "fmt"
+    "io"
+    "math"
+    "net/url"
+    "strings"
 
-	"github.com/minio/madmin-go/v3"
-	minio "github.com/minio/minio-go/v7"
-	"github.com/minio/minio-go/v7/pkg/credentials"
+    "github.com/minio/madmin-go/v3"
+    minio "github.com/minio/minio-go/v7"
+    "github.com/minio/minio-go/v7/pkg/credentials"
 )
 
 type warmBackendMinIO struct {
-	warmBackendS3
+    warmBackendS3
 }
 
 var _ WarmBackend = (*warmBackendMinIO)(nil)
 
 const (
-	maxMultipartPutObjectSize = 1024 * 1024 * 1024 * 1024 * 5
-	maxPartsCount             = 10000
-	maxPartSize               = 1024 * 1024 * 1024 * 5
-	minPartSize               = 1024 * 1024 * 128 // chosen by us to be optimal for HDDs
+    maxMultipartPutObjectSize = 1024 * 1024 * 1024 * 1024 * 5
+    maxPartsCount             = 10000
+    maxPartSize               = 1024 * 1024 * 1024 * 5
+    minPartSize               = 1024 * 1024 * 128 // chosen by us to be optimal for HDDs
 )
 
 // optimalPartInfo - calculate the optimal part info for a given
@@ -53,84 +53,84 @@ const (
 //	maxPartsCount - 10000
 //	maxMultipartPutObjectSize - 5TiB
 func optimalPartSize(objectSize int64) (partSize int64, err error) {
-	// object size is '-1' set it to 5TiB.
-	if objectSize == -1 {
-		objectSize = maxMultipartPutObjectSize
-	}
+    // object size is '-1' set it to 5TiB.
+    if objectSize == -1 {
+        objectSize = maxMultipartPutObjectSize
+    }
 
-	// object size is larger than supported maximum.
-	if objectSize > maxMultipartPutObjectSize {
-		err = errors.New("entity too large")
-		return partSize, err
-	}
+    // object size is larger than supported maximum.
+    if objectSize > maxMultipartPutObjectSize {
+        err = errors.New("entity too large")
+        return partSize, err
+    }
 
-	configuredPartSize := minPartSize
-	// Use floats for part size for all calculations to avoid
-	// overflows during float64 to int64 conversions.
-	partSizeFlt := float64(objectSize / maxPartsCount)
-	partSizeFlt = math.Ceil(partSizeFlt/float64(configuredPartSize)) * float64(configuredPartSize)
+    configuredPartSize := minPartSize
+    // Use floats for part size for all calculations to avoid
+    // overflows during float64 to int64 conversions.
+    partSizeFlt := float64(objectSize / maxPartsCount)
+    partSizeFlt = math.Ceil(partSizeFlt/float64(configuredPartSize)) * float64(configuredPartSize)
 
-	// Part size.
-	partSize = int64(partSizeFlt)
-	if partSize == 0 {
-		return minPartSize, nil
-	}
-	return partSize, nil
+    // Part size.
+    partSize = int64(partSizeFlt)
+    if partSize == 0 {
+        return minPartSize, nil
+    }
+    return partSize, nil
 }
 
 func (m *warmBackendMinIO) PutWithMeta(ctx context.Context, object string, r io.Reader, length int64, meta map[string]string) (remoteVersionID, error) {
-	partSize, err := optimalPartSize(length)
-	if err != nil {
-		return remoteVersionID(""), err
-	}
-	res, err := m.client.PutObject(ctx, m.Bucket, m.getDest(object), r, length, minio.PutObjectOptions{
-		StorageClass:         m.StorageClass,
-		PartSize:             uint64(partSize),
-		DisableContentSha256: true,
-		UserMetadata:         meta,
-	})
-	return remoteVersionID(res.VersionID), m.ToObjectError(err, object)
+    partSize, err := optimalPartSize(length)
+    if err != nil {
+        return remoteVersionID(""), err
+    }
+    res, err := m.client.PutObject(ctx, m.Bucket, m.getDest(object), r, length, minio.PutObjectOptions{
+        StorageClass:         m.StorageClass,
+        PartSize:             uint64(partSize),
+        DisableContentSha256: true,
+        UserMetadata:         meta,
+    })
+    return remoteVersionID(res.VersionID), m.ToObjectError(err, object)
 }
 
 func (m *warmBackendMinIO) Put(ctx context.Context, object string, r io.Reader, length int64) (remoteVersionID, error) {
-	return m.PutWithMeta(ctx, object, r, length, map[string]string{})
+    return m.PutWithMeta(ctx, object, r, length, map[string]string{})
 }
 
 func newWarmBackendMinIO(conf madmin.TierMinIO, tier string) (*warmBackendMinIO, error) {
-	// Validation of credentials
-	if conf.AccessKey == "" || conf.SecretKey == "" {
-		return nil, errors.New("both access and secret keys are required")
-	}
+    // Validation of credentials
+    if conf.AccessKey == "" || conf.SecretKey == "" {
+        return nil, errors.New("both access and secret keys are required")
+    }
 
-	if conf.Bucket == "" {
-		return nil, errors.New("no bucket name was provided")
-	}
+    if conf.Bucket == "" {
+        return nil, errors.New("no bucket name was provided")
+    }
 
-	u, err := url.Parse(conf.Endpoint)
-	if err != nil {
-		return nil, err
-	}
+    u, err := url.Parse(conf.Endpoint)
+    if err != nil {
+        return nil, err
+    }
 
-	creds := credentials.NewStaticV4(conf.AccessKey, conf.SecretKey, "")
-	opts := &minio.Options{
-		Creds:           creds,
-		Secure:          u.Scheme == "https",
-		Transport:       globalRemoteTargetTransport,
-		TrailingHeaders: true,
-	}
-	client, err := minio.New(u.Host, opts)
-	if err != nil {
-		return nil, err
-	}
-	client.SetAppInfo(fmt.Sprintf("minio-tier-%s", tier), ReleaseTag)
+    creds := credentials.NewStaticV4(conf.AccessKey, conf.SecretKey, "")
+    opts := &minio.Options{
+        Creds:           creds,
+        Secure:          u.Scheme == "https",
+        Transport:       globalRemoteTargetTransport,
+        TrailingHeaders: true,
+    }
+    client, err := minio.New(u.Host, opts)
+    if err != nil {
+        return nil, err
+    }
+    client.SetAppInfo(fmt.Sprintf("minio-tier-%s", tier), ReleaseTag)
 
-	core := &minio.Core{Client: client}
-	return &warmBackendMinIO{
-		warmBackendS3{
-			client: client,
-			core:   core,
-			Bucket: conf.Bucket,
-			Prefix: strings.TrimSuffix(conf.Prefix, slashSeparator),
-		},
-	}, nil
+    core := &minio.Core{Client: client}
+    return &warmBackendMinIO{
+        warmBackendS3{
+            client: client,
+            core:   core,
+            Bucket: conf.Bucket,
+            Prefix: strings.TrimSuffix(conf.Prefix, slashSeparator),
+        },
+    }, nil
 }

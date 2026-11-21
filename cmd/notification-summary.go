@@ -18,53 +18,53 @@
 package cmd
 
 import (
-	"github.com/minio/madmin-go/v3"
+    "github.com/minio/madmin-go/v3"
 )
 
 // GetTotalCapacity gets the total capacity in the cluster.
 func GetTotalCapacity(diskInfo []madmin.Disk) (capacity uint64) {
-	for _, disk := range diskInfo {
-		capacity += disk.TotalSpace
-	}
-	return capacity
+    for _, disk := range diskInfo {
+        capacity += disk.TotalSpace
+    }
+    return capacity
 }
 
 // GetTotalUsableCapacity gets the total usable capacity in the cluster.
 func GetTotalUsableCapacity(diskInfo []madmin.Disk, s StorageInfo) (capacity uint64) {
-	for _, disk := range diskInfo {
-		// Ignore invalid.
-		if disk.PoolIndex < 0 || len(s.Backend.StandardSCData) <= disk.PoolIndex {
-			// https://github.com/minio/minio/issues/16500
-			continue
-		}
-		// Ignore parity disks
-		if disk.DiskIndex < s.Backend.StandardSCData[disk.PoolIndex] {
-			capacity += disk.TotalSpace
-		}
-	}
-	return capacity
+    for _, disk := range diskInfo {
+        // Ignore invalid.
+        if disk.PoolIndex < 0 || len(s.Backend.StandardSCData) <= disk.PoolIndex {
+            // https://github.com/minio/minio/issues/16500
+            continue
+        }
+        // Ignore parity disks
+        if disk.DiskIndex < s.Backend.StandardSCData[disk.PoolIndex] {
+            capacity += disk.TotalSpace
+        }
+    }
+    return capacity
 }
 
 // GetTotalCapacityFree gets the total capacity free in the cluster.
 func GetTotalCapacityFree(diskInfo []madmin.Disk) (capacity uint64) {
-	for _, d := range diskInfo {
-		capacity += d.AvailableSpace
-	}
-	return capacity
+    for _, d := range diskInfo {
+        capacity += d.AvailableSpace
+    }
+    return capacity
 }
 
 // GetTotalUsableCapacityFree gets the total usable capacity free in the cluster.
 func GetTotalUsableCapacityFree(diskInfo []madmin.Disk, s StorageInfo) (capacity uint64) {
-	for _, disk := range diskInfo {
-		// Ignore invalid.
-		if disk.PoolIndex < 0 || len(s.Backend.StandardSCData) <= disk.PoolIndex {
-			// https://github.com/minio/minio/issues/16500
-			continue
-		}
-		// Ignore parity disks
-		if disk.DiskIndex < s.Backend.StandardSCData[disk.PoolIndex] {
-			capacity += disk.AvailableSpace
-		}
-	}
-	return capacity
+    for _, disk := range diskInfo {
+        // Ignore invalid.
+        if disk.PoolIndex < 0 || len(s.Backend.StandardSCData) <= disk.PoolIndex {
+            // https://github.com/minio/minio/issues/16500
+            continue
+        }
+        // Ignore parity disks
+        if disk.DiskIndex < s.Backend.StandardSCData[disk.PoolIndex] {
+            capacity += disk.AvailableSpace
+        }
+    }
+    return capacity
 }

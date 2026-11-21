@@ -5,20 +5,20 @@ package cmd
 import "strconv"
 
 func _() {
-	// An "invalid array index" compiler error signifies that the constant values have changed.
-	// Re-run the stringer command to generate them again.
-	var x [1]struct{}
-	_ = x[lcEventSrc_None-0]
-	_ = x[lcEventSrc_Heal-1]
-	_ = x[lcEventSrc_Scanner-2]
-	_ = x[lcEventSrc_Decom-3]
-	_ = x[lcEventSrc_Rebal-4]
-	_ = x[lcEventSrc_s3HeadObject-5]
-	_ = x[lcEventSrc_s3GetObject-6]
-	_ = x[lcEventSrc_s3ListObjects-7]
-	_ = x[lcEventSrc_s3PutObject-8]
-	_ = x[lcEventSrc_s3CopyObject-9]
-	_ = x[lcEventSrc_s3CompleteMultipartUpload-10]
+    // An "invalid array index" compiler error signifies that the constant values have changed.
+    // Re-run the stringer command to generate them again.
+    var x [1]struct{}
+    _ = x[lcEventSrc_None-0]
+    _ = x[lcEventSrc_Heal-1]
+    _ = x[lcEventSrc_Scanner-2]
+    _ = x[lcEventSrc_Decom-3]
+    _ = x[lcEventSrc_Rebal-4]
+    _ = x[lcEventSrc_s3HeadObject-5]
+    _ = x[lcEventSrc_s3GetObject-6]
+    _ = x[lcEventSrc_s3ListObjects-7]
+    _ = x[lcEventSrc_s3PutObject-8]
+    _ = x[lcEventSrc_s3CopyObject-9]
+    _ = x[lcEventSrc_s3CompleteMultipartUpload-10]
 }
 
 const _lcEventSrc_name = "NoneHealScannerDecomRebals3HeadObjects3GetObjects3ListObjectss3PutObjects3CopyObjects3CompleteMultipartUpload"
@@ -26,8 +26,8 @@ const _lcEventSrc_name = "NoneHealScannerDecomRebals3HeadObjects3GetObjects3List
 var _lcEventSrc_index = [...]uint8{0, 4, 8, 15, 20, 25, 37, 48, 61, 72, 84, 109}
 
 func (i lcEventSrc) String() string {
-	if i >= lcEventSrc(len(_lcEventSrc_index)-1) {
-		return "lcEventSrc(" + strconv.FormatInt(int64(i), 10) + ")"
-	}
-	return _lcEventSrc_name[_lcEventSrc_index[i]:_lcEventSrc_index[i+1]]
+    if i >= lcEventSrc(len(_lcEventSrc_index)-1) {
+        return "lcEventSrc(" + strconv.FormatInt(int64(i), 10) + ")"
+    }
+    return _lcEventSrc_name[_lcEventSrc_index[i]:_lcEventSrc_index[i+1]]
 }

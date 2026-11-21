@@ -18,35 +18,35 @@
 package cmd
 
 import (
-	"testing"
-	"time"
+    "testing"
+    "time"
 )
 
 func TestTierMetrics(t *testing.T) {
-	tier := "WARM-1"
-	globalTierMetrics.Observe(tier, 200*time.Millisecond)
-	expSuccess := 10
-	expFailure := 5
-	for range expSuccess {
-		globalTierMetrics.logSuccess(tier)
-	}
-	for range expFailure {
-		globalTierMetrics.logFailure(tier)
-	}
-	metrics := globalTierMetrics.Report()
-	var succ, fail float64
-	for _, metric := range metrics {
-		switch metric.Description.Name {
-		case tierRequestsSuccess:
-			succ += metric.Value
-		case tierRequestsFailure:
-			fail += metric.Value
-		}
-	}
-	if int(succ) != expSuccess {
-		t.Fatalf("Expected %d successes but got %f", expSuccess, succ)
-	}
-	if int(fail) != expFailure {
-		t.Fatalf("Expected %d failures but got %f", expFailure, fail)
-	}
+    tier := "WARM-1"
+    globalTierMetrics.Observe(tier, 200*time.Millisecond)
+    expSuccess := 10
+    expFailure := 5
+    for range expSuccess {
+        globalTierMetrics.logSuccess(tier)
+    }
+    for range expFailure {
+        globalTierMetrics.logFailure(tier)
+    }
+    metrics := globalTierMetrics.Report()
+    var succ, fail float64
+    for _, metric := range metrics {
+        switch metric.Description.Name {
+        case tierRequestsSuccess:
+            succ += metric.Value
+        case tierRequestsFailure:
+            fail += metric.Value
+        }
+    }
+    if int(succ) != expSuccess {
+        t.Fatalf("Expected %d successes but got %f", expSuccess, succ)
+    }
+    if int(fail) != expFailure {
+        t.Fatalf("Expected %d failures but got %f", expFailure, fail)
+    }
 }

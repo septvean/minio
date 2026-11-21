@@ -21,10 +21,10 @@
 package cmd
 
 import (
-	"os"
+    "os"
 )
 
 // RenameSys is low level call in case of non-Linux this just uses os.Rename()
 func RenameSys(src, dst string) (err error) {
-	return os.Rename(src, dst)
+    return os.Rename(src, dst)
 }

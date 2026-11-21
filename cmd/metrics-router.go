@@ -18,58 +18,58 @@
 package cmd
 
 import (
-	"net/http"
-	"strings"
+    "net/http"
+    "strings"
 
-	"github.com/minio/mux"
-	"github.com/minio/pkg/v3/env"
+    "github.com/minio/mux"
+    "github.com/minio/pkg/v3/env"
 )
 
 const (
-	prometheusMetricsPathLegacy     = "/prometheus/metrics"
-	prometheusMetricsV2ClusterPath  = "/v2/metrics/cluster"
-	prometheusMetricsV2BucketPath   = "/v2/metrics/bucket"
-	prometheusMetricsV2NodePath     = "/v2/metrics/node"
-	prometheusMetricsV2ResourcePath = "/v2/metrics/resource"
+    prometheusMetricsPathLegacy     = "/prometheus/metrics"
+    prometheusMetricsV2ClusterPath  = "/v2/metrics/cluster"
+    prometheusMetricsV2BucketPath   = "/v2/metrics/bucket"
+    prometheusMetricsV2NodePath     = "/v2/metrics/node"
+    prometheusMetricsV2ResourcePath = "/v2/metrics/resource"
 
-	// Metrics v3 endpoints
-	metricsV3Path = "/metrics/v3"
+    // Metrics v3 endpoints
+    metricsV3Path = "/metrics/v3"
 )
 
 // Standard env prometheus auth type
 const (
-	EnvPrometheusAuthType    = "MINIO_PROMETHEUS_AUTH_TYPE"
-	EnvPrometheusOpenMetrics = "MINIO_PROMETHEUS_OPEN_METRICS"
+    EnvPrometheusAuthType    = "MINIO_PROMETHEUS_AUTH_TYPE"
+    EnvPrometheusOpenMetrics = "MINIO_PROMETHEUS_OPEN_METRICS"
 )
 
 type prometheusAuthType string
 
 const (
-	prometheusJWT    prometheusAuthType = "jwt"
-	prometheusPublic prometheusAuthType = "public"
+    prometheusJWT    prometheusAuthType = "jwt"
+    prometheusPublic prometheusAuthType = "public"
 )
 
 // registerMetricsRouter - add handler functions for metrics.
 func registerMetricsRouter(router *mux.Router) {
-	// metrics router
-	metricsRouter := router.NewRoute().PathPrefix(minioReservedBucketPath).Subrouter()
-	authType := prometheusAuthType(strings.ToLower(env.Get(EnvPrometheusAuthType, string(prometheusJWT))))
+    // metrics router
+    metricsRouter := router.NewRoute().PathPrefix(minioReservedBucketPath).Subrouter()
+    authType := prometheusAuthType(strings.ToLower(env.Get(EnvPrometheusAuthType, string(prometheusJWT))))
 
-	auth := AuthMiddleware
-	if authType == prometheusPublic {
-		auth = NoAuthMiddleware
-	}
+    auth := AuthMiddleware
+    if authType == prometheusPublic {
+        auth = NoAuthMiddleware
+    }
 
-	metricsRouter.Handle(prometheusMetricsPathLegacy, auth(metricsHandler()))
-	metricsRouter.Handle(prometheusMetricsV2ClusterPath, auth(metricsServerHandler()))
-	metricsRouter.Handle(prometheusMetricsV2BucketPath, auth(metricsBucketHandler()))
-	metricsRouter.Handle(prometheusMetricsV2NodePath, auth(metricsNodeHandler()))
-	metricsRouter.Handle(prometheusMetricsV2ResourcePath, auth(metricsResourceHandler()))
+    metricsRouter.Handle(prometheusMetricsPathLegacy, auth(metricsHandler()))
+    metricsRouter.Handle(prometheusMetricsV2ClusterPath, auth(metricsServerHandler()))
+    metricsRouter.Handle(prometheusMetricsV2BucketPath, auth(metricsBucketHandler()))
+    metricsRouter.Handle(prometheusMetricsV2NodePath, auth(metricsNodeHandler()))
+    metricsRouter.Handle(prometheusMetricsV2ResourcePath, auth(metricsResourceHandler()))
 
-	// Metrics v3
-	metricsV3Server := newMetricsV3Server(auth)
+    // Metrics v3
+    metricsV3Server := newMetricsV3Server(auth)
 
-	// Register metrics v3 handler. It also accepts an optional query
-	// parameter `?list` - see handler for details.
-	metricsRouter.Methods(http.MethodGet).Path(metricsV3Path + "{pathComps:.*}").Handler(metricsV3Server)
+    // Register metrics v3 handler. It also accepts an optional query
+    // parameter `?list` - see handler for details.
+    metricsRouter.Methods(http.MethodGet).Path(metricsV3Path + "{pathComps:.*}").Handler(metricsV3Server)
 }

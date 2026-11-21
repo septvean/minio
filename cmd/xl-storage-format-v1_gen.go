@@ -3,7 +3,7 @@
 package cmd
 
 import (
-	"github.com/tinylib/msgp/msgp"
+    "github.com/tinylib/msgp/msgp"
 )
 
 // DecodeMsg implements msgp.Decodable

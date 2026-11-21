@@ -21,10 +21,10 @@
 package cmd
 
 import (
-	"syscall"
+    "syscall"
 )
 
 // RenameSys is low level call in case of Linux this uses syscall.Rename() directly.
 func RenameSys(src, dst string) (err error) {
-	return syscall.Rename(src, dst)
+    return syscall.Rename(src, dst)
 }

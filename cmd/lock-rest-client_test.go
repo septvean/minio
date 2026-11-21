@@ -18,55 +18,55 @@
 package cmd
 
 import (
-	"context"
-	"testing"
+    "context"
+    "testing"
 
-	"github.com/minio/minio/internal/dsync"
+    "github.com/minio/minio/internal/dsync"
 )
 
 // Tests lock rpc client.
 func TestLockRESTlient(t *testing.T) {
-	// These should not be connectable.
-	endpoint, err := NewEndpoint("http://localhost:9876")
-	if err != nil {
-		t.Fatalf("unexpected error %v", err)
-	}
-	endpointLocal, err := NewEndpoint("http://localhost:9012")
-	if err != nil {
-		t.Fatalf("unexpected error %v", err)
-	}
-	endpointLocal.IsLocal = true
+    // These should not be connectable.
+    endpoint, err := NewEndpoint("http://localhost:9876")
+    if err != nil {
+        t.Fatalf("unexpected error %v", err)
+    }
+    endpointLocal, err := NewEndpoint("http://localhost:9012")
+    if err != nil {
+        t.Fatalf("unexpected error %v", err)
+    }
+    endpointLocal.IsLocal = true
 
-	ctx, cancel := context.WithCancel(t.Context())
-	defer cancel()
-	err = initGlobalLockGrid(ctx, []PoolEndpoints{{Endpoints: Endpoints{endpoint, endpointLocal}}})
-	if err != nil {
-		t.Fatal(err)
-	}
+    ctx, cancel := context.WithCancel(t.Context())
+    defer cancel()
+    err = initGlobalLockGrid(ctx, []PoolEndpoints{{Endpoints: Endpoints{endpoint, endpointLocal}}})
+    if err != nil {
+        t.Fatal(err)
+    }
 
-	lkClient := newlockRESTClient(endpoint)
-	if lkClient.IsOnline() {
-		t.Fatalf("unexpected result. connection was online")
-	}
+    lkClient := newlockRESTClient(endpoint)
+    if lkClient.IsOnline() {
+        t.Fatalf("unexpected result. connection was online")
+    }
 
-	// Attempt all calls.
-	_, err = lkClient.RLock(t.Context(), dsync.LockArgs{})
-	if err == nil {
-		t.Fatal("Expected for Rlock to fail")
-	}
+    // Attempt all calls.
+    _, err = lkClient.RLock(t.Context(), dsync.LockArgs{})
+    if err == nil {
+        t.Fatal("Expected for Rlock to fail")
+    }
 
-	_, err = lkClient.Lock(t.Context(), dsync.LockArgs{})
-	if err == nil {
-		t.Fatal("Expected for Lock to fail")
-	}
+    _, err = lkClient.Lock(t.Context(), dsync.LockArgs{})
+    if err == nil {
+        t.Fatal("Expected for Lock to fail")
+    }
 
-	_, err = lkClient.RUnlock(t.Context(), dsync.LockArgs{})
-	if err == nil {
-		t.Fatal("Expected for RUnlock to fail")
-	}
+    _, err = lkClient.RUnlock(t.Context(), dsync.LockArgs{})
+    if err == nil {
+        t.Fatal("Expected for RUnlock to fail")
+    }
 
-	_, err = lkClient.Unlock(t.Context(), dsync.LockArgs{})
-	if err == nil {
-		t.Fatal("Expected for Unlock to fail")
-	}
+    _, err = lkClient.Unlock(t.Context(), dsync.LockArgs{})
+    if err == nil {
+        t.Fatal("Expected for Unlock to fail")
+    }
 }

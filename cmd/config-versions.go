@@ -18,62 +18,62 @@
 package cmd
 
 import (
-	"github.com/minio/minio/internal/auth"
-	"github.com/minio/minio/internal/config"
-	"github.com/minio/minio/internal/config/compress"
-	xldap "github.com/minio/minio/internal/config/identity/ldap"
-	"github.com/minio/minio/internal/config/identity/openid"
-	"github.com/minio/minio/internal/config/notify"
-	"github.com/minio/minio/internal/config/policy/opa"
-	"github.com/minio/minio/internal/config/storageclass"
-	"github.com/minio/minio/internal/logger"
-	"github.com/minio/pkg/v3/quick"
+    "github.com/minio/minio/internal/auth"
+    "github.com/minio/minio/internal/config"
+    "github.com/minio/minio/internal/config/compress"
+    xldap "github.com/minio/minio/internal/config/identity/ldap"
+    "github.com/minio/minio/internal/config/identity/openid"
+    "github.com/minio/minio/internal/config/notify"
+    "github.com/minio/minio/internal/config/policy/opa"
+    "github.com/minio/minio/internal/config/storageclass"
+    "github.com/minio/minio/internal/logger"
+    "github.com/minio/pkg/v3/quick"
 )
 
 // FileLogger is introduced to workaround the dependency about logrus
 type FileLogger struct {
-	Enable   bool   `json:"enable"`
-	Filename string `json:"filename"`
+    Enable   bool   `json:"enable"`
+    Filename string `json:"filename"`
 }
 
 // ConsoleLogger is introduced to workaround the dependency about logrus
 type ConsoleLogger struct {
-	Enable bool `json:"enable"`
+    Enable bool `json:"enable"`
 }
 
 // serverConfigV33 is just like version '32', removes clientID from NATS and MQTT, and adds queueDir, queueLimit in all notification targets.
 type serverConfigV33 struct {
-	quick.Config `json:"-"` // ignore interfaces
+    quick.Config `json:"-"` // ignore interfaces
 
-	Version string `json:"version"`
+    Version string `json:"version"`
 
-	// S3 API configuration.
-	Credential auth.Credentials `json:"credential"`
-	Region     string           `json:"region"`
-	Worm       config.BoolFlag  `json:"worm"`
+    // S3 API configuration.
+    Credential auth.Credentials `json:"credential"`
+    Region     string           `json:"region"`
+    Worm       config.BoolFlag  `json:"worm"`
 
-	// Storage class configuration
-	StorageClass storageclass.Config `json:"storageclass"`
+    // Storage class configuration
+    StorageClass storageclass.Config `json:"storageclass"`
 
-	// Notification queue configuration.
-	Notify notify.Config `json:"notify"`
+    // Notification queue configuration.
+    Notify notify.Config `json:"notify"`
 
-	// Logger configuration
-	Logger logger.Config `json:"logger"`
+    // Logger configuration
+    Logger logger.Config `json:"logger"`
 
-	// Compression configuration
-	Compression compress.Config `json:"compress"`
+    // Compression configuration
+    Compression compress.Config `json:"compress"`
 
-	// OpenID configuration
-	OpenID openid.Config `json:"openid"`
+    // OpenID configuration
+    OpenID openid.Config `json:"openid"`
 
-	// External policy enforcements.
-	Policy struct {
-		// OPA configuration.
-		OPA opa.Args `json:"opa"`
+    // External policy enforcements.
+    Policy struct {
+        // OPA configuration.
+        OPA opa.Args `json:"opa"`
 
-		// Add new external policy enforcements here.
-	} `json:"policy"`
+        // Add new external policy enforcements here.
+    }   `json:"policy"`
 
-	LDAPServerConfig xldap.LegacyConfig `json:"ldapserverconfig"`
+    LDAPServerConfig xldap.LegacyConfig `json:"ldapserverconfig"`
 }

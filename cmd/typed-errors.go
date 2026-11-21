@@ -18,7 +18,7 @@
 package cmd
 
 import (
-	"errors"
+    "errors"
 )
 
 // errInvalidArgument means that input argument is invalid.

@@ -18,183 +18,183 @@
 package cmd
 
 import (
-	"context"
-	"errors"
-	"fmt"
-	"path"
-	"strings"
-	"time"
+    "context"
+    "errors"
+    "fmt"
+    "path"
+    "strings"
+    "time"
 
-	"github.com/minio/pkg/v3/console"
+    "github.com/minio/pkg/v3/console"
 )
 
 type scanStatus uint8
 
 const (
-	scanStateNone scanStatus = iota
-	scanStateStarted
-	scanStateSuccess
-	scanStateError
+    scanStateNone scanStatus = iota
+    scanStateStarted
+    scanStateSuccess
+    scanStateError
 
-	// Time in which the initiator of a scan must have reported back.
-	metacacheMaxRunningAge = time.Minute
+    // Time in which the initiator of a scan must have reported back.
+    metacacheMaxRunningAge = time.Minute
 
-	// Max time between client calls before dropping an async cache listing.
-	metacacheMaxClientWait = 3 * time.Minute
+    // Max time between client calls before dropping an async cache listing.
+    metacacheMaxClientWait = 3 * time.Minute
 
-	// metacacheBlockSize is the number of file/directory entries to have in each block.
-	metacacheBlockSize = 5000
+    // metacacheBlockSize is the number of file/directory entries to have in each block.
+    metacacheBlockSize = 5000
 
-	// metacacheSharePrefix controls whether prefixes on dirty paths are always shared.
-	// This will make `test/a` and `test/b` share listings if they are concurrent.
-	// Enabling this will make cache sharing more likely and cause less IO,
-	// but may cause additional latency to some calls.
-	metacacheSharePrefix = false
+    // metacacheSharePrefix controls whether prefixes on dirty paths are always shared.
+    // This will make `test/a` and `test/b` share listings if they are concurrent.
+    // Enabling this will make cache sharing more likely and cause less IO,
+    // but may cause additional latency to some calls.
+    metacacheSharePrefix = false
 )
 
 //go:generate msgp -file $GOFILE -unexported
 
 // metacache contains a tracked cache entry.
 type metacache struct {
-	// do not re-arrange the struct this struct has been ordered to use less
-	// space - if you do so please run https://github.com/orijtech/structslop
-	// and verify if your changes are optimal.
-	ended        time.Time  `msg:"end"`
-	started      time.Time  `msg:"st"`
-	lastHandout  time.Time  `msg:"lh"`
-	lastUpdate   time.Time  `msg:"u"`
-	bucket       string     `msg:"b"`
-	filter       string     `msg:"flt"`
-	id           string     `msg:"id"`
-	error        string     `msg:"err"`
-	root         string     `msg:"root"`
-	fileNotFound bool       `msg:"fnf"`
-	status       scanStatus `msg:"stat"`
-	recursive    bool       `msg:"rec"`
-	dataVersion  uint8      `msg:"v"`
+    // do not re-arrange the struct this struct has been ordered to use less
+    // space - if you do so please run https://github.com/orijtech/structslop
+    // and verify if your changes are optimal.
+    ended        time.Time  `msg:"end"`
+    started      time.Time  `msg:"st"`
+    lastHandout  time.Time  `msg:"lh"`
+    lastUpdate   time.Time  `msg:"u"`
+    bucket       string     `msg:"b"`
+    filter       string     `msg:"flt"`
+    id           string     `msg:"id"`
+    error        string     `msg:"err"`
+    root         string     `msg:"root"`
+    fileNotFound bool       `msg:"fnf"`
+    status       scanStatus `msg:"stat"`
+    recursive    bool       `msg:"rec"`
+    dataVersion  uint8      `msg:"v"`
 }
 
 func (m *metacache) finished() bool {
-	return !m.ended.IsZero()
+    return !m.ended.IsZero()
 }
 
 // worthKeeping indicates if the cache by itself is worth keeping.
 func (m *metacache) worthKeeping() bool {
-	if m == nil {
-		return false
-	}
-	cache := m
-	switch {
-	case !cache.finished() && time.Since(cache.lastUpdate) > metacacheMaxRunningAge:
-		// Not finished and update for metacacheMaxRunningAge, discard it.
-		return false
-	case cache.finished() && time.Since(cache.lastHandout) > 5*metacacheMaxClientWait:
-		// Keep for 15 minutes after we last saw the client.
-		// Since the cache is finished keeping it a bit longer doesn't hurt us.
-		return false
-	case cache.status == scanStateError || cache.status == scanStateNone:
-		// Remove failed listings after 5 minutes.
-		return time.Since(cache.lastUpdate) > 5*time.Minute
-	}
-	return true
+    if m == nil {
+        return false
+    }
+    cache := m
+    switch {
+    case !cache.finished() && time.Since(cache.lastUpdate) > metacacheMaxRunningAge:
+        // Not finished and update for metacacheMaxRunningAge, discard it.
+        return false
+    case cache.finished() && time.Since(cache.lastHandout) > 5*metacacheMaxClientWait:
+        // Keep for 15 minutes after we last saw the client.
+        // Since the cache is finished keeping it a bit longer doesn't hurt us.
+        return false
+    case cache.status == scanStateError || cache.status == scanStateNone:
+        // Remove failed listings after 5 minutes.
+        return time.Since(cache.lastUpdate) > 5*time.Minute
+    }
+    return true
 }
 
 // keepAlive will continuously update lastHandout until ctx is canceled.
 func (m metacache) keepAlive(ctx context.Context, rpc *peerRESTClient) {
-	// we intentionally operate on a copy of m, so we can update without locks.
-	t := time.NewTicker(metacacheMaxClientWait / 10)
-	defer t.Stop()
-	for {
-		select {
-		case <-ctx.Done():
-			// Request is done, stop updating.
-			return
-		case <-t.C:
-			m.lastHandout = time.Now()
+    // we intentionally operate on a copy of m, so we can update without locks.
+    t := time.NewTicker(metacacheMaxClientWait / 10)
+    defer t.Stop()
+    for {
+        select {
+        case <-ctx.Done():
+            // Request is done, stop updating.
+            return
+        case <-t.C:
+            m.lastHandout = time.Now()
 
-			if m2, err := rpc.UpdateMetacacheListing(ctx, m); err == nil {
-				if m2.status != scanStateStarted {
-					if serverDebugLog {
-						console.Debugln("returning", m.id, "due to scan state", m2.status, time.Now().Format(time.RFC3339))
-					}
-					return
-				}
-				m = m2
-				if serverDebugLog {
-					console.Debugln("refreshed", m.id, time.Now().Format(time.RFC3339))
-				}
-			} else if serverDebugLog {
-				console.Debugln("error refreshing", m.id, time.Now().Format(time.RFC3339))
-			}
-		}
-	}
+            if m2, err := rpc.UpdateMetacacheListing(ctx, m); err == nil {
+                if m2.status != scanStateStarted {
+                    if serverDebugLog {
+                        console.Debugln("returning", m.id, "due to scan state", m2.status, time.Now().Format(time.RFC3339))
+                    }
+                    return
+                }
+                m = m2
+                if serverDebugLog {
+                    console.Debugln("refreshed", m.id, time.Now().Format(time.RFC3339))
+                }
+            } else if serverDebugLog {
+                console.Debugln("error refreshing", m.id, time.Now().Format(time.RFC3339))
+            }
+        }
+    }
 }
 
 // baseDirFromPrefix will return the base directory given an object path.
 // For example an object with name prefix/folder/object.ext will return `prefix/folder/`.
 func baseDirFromPrefix(prefix string) string {
-	b := path.Dir(prefix)
-	if b == "." || b == "./" || b == "/" {
-		b = ""
-	}
-	if !strings.Contains(prefix, slashSeparator) {
-		b = ""
-	}
-	if len(b) > 0 && !strings.HasSuffix(b, slashSeparator) {
-		b += slashSeparator
-	}
-	return b
+    b := path.Dir(prefix)
+    if b == "." || b == "./" || b == "/" {
+        b = ""
+    }
+    if !strings.Contains(prefix, slashSeparator) {
+        b = ""
+    }
+    if len(b) > 0 && !strings.HasSuffix(b, slashSeparator) {
+        b += slashSeparator
+    }
+    return b
 }
 
 // update cache with new status.
 // The updates are conditional so multiple callers can update with different states.
 func (m *metacache) update(update metacache) {
-	now := UTCNow()
-	m.lastUpdate = now
+    now := UTCNow()
+    m.lastUpdate = now
 
-	if update.lastHandout.After(m.lastHandout) {
-		m.lastHandout = update.lastUpdate
-		if m.lastHandout.After(now) {
-			m.lastHandout = now
-		}
-	}
-	if m.status == scanStateStarted && update.status == scanStateSuccess {
-		m.ended = now
-	}
+    if update.lastHandout.After(m.lastHandout) {
+        m.lastHandout = update.lastUpdate
+        if m.lastHandout.After(now) {
+            m.lastHandout = now
+        }
+    }
+    if m.status == scanStateStarted && update.status == scanStateSuccess {
+        m.ended = now
+    }
 
-	if m.status == scanStateStarted && update.status != scanStateStarted {
-		m.status = update.status
-	}
+    if m.status == scanStateStarted && update.status != scanStateStarted {
+        m.status = update.status
+    }
 
-	if m.status == scanStateStarted && time.Since(m.lastHandout) > metacacheMaxClientWait {
-		// Drop if client hasn't been seen for 3 minutes.
-		m.status = scanStateError
-		m.error = "client not seen"
-	}
+    if m.status == scanStateStarted && time.Since(m.lastHandout) > metacacheMaxClientWait {
+        // Drop if client hasn't been seen for 3 minutes.
+        m.status = scanStateError
+        m.error = "client not seen"
+    }
 
-	if m.error == "" && update.error != "" {
-		m.error = update.error
-		m.status = scanStateError
-		m.ended = now
-	}
-	m.fileNotFound = m.fileNotFound || update.fileNotFound
+    if m.error == "" && update.error != "" {
+        m.error = update.error
+        m.status = scanStateError
+        m.ended = now
+    }
+    m.fileNotFound = m.fileNotFound || update.fileNotFound
 }
 
 // delete all cache data on disks.
 func (m *metacache) delete(ctx context.Context) {
-	if m.bucket == "" || m.id == "" {
-		bugLogIf(ctx, fmt.Errorf("metacache.delete: bucket (%s) or id (%s) empty", m.bucket, m.id))
-		return
-	}
-	objAPI := newObjectLayerFn()
-	if objAPI == nil {
-		internalLogIf(ctx, errors.New("metacache.delete: no object layer"))
-		return
-	}
-	ez, ok := objAPI.(deleteAllStorager)
-	if !ok {
-		bugLogIf(ctx, errors.New("metacache.delete: expected objAPI to be 'deleteAllStorager'"))
-		return
-	}
-	ez.deleteAll(ctx, minioMetaBucket, metacachePrefixForID(m.bucket, m.id))
+    if m.bucket == "" || m.id == "" {
+        bugLogIf(ctx, fmt.Errorf("metacache.delete: bucket (%s) or id (%s) empty", m.bucket, m.id))
+        return
+    }
+    objAPI := newObjectLayerFn()
+    if objAPI == nil {
+        internalLogIf(ctx, errors.New("metacache.delete: no object layer"))
+        return
+    }
+    ez, ok := objAPI.(deleteAllStorager)
+    if !ok {
+        bugLogIf(ctx, errors.New("metacache.delete: expected objAPI to be 'deleteAllStorager'"))
+        return
+    }
+    ez.deleteAll(ctx, minioMetaBucket, metacachePrefixForID(m.bucket, m.id))
 }

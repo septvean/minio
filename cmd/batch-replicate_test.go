@@ -18,14 +18,14 @@
 package cmd
 
 import (
-	"slices"
-	"testing"
+    "slices"
+    "testing"
 
-	"gopkg.in/yaml.v3"
+    "gopkg.in/yaml.v3"
 )
 
 func TestParseBatchJobReplicate(t *testing.T) {
-	replicateYaml := `
+    replicateYaml := `
 replicate:
   apiVersion: v1
   # source of the objects to be replicated
@@ -93,15 +93,15 @@ replicate:
 #      delay: "500ms" # least amount of delay between each retry
 
 `
-	var job BatchJobRequest
-	err := yaml.Unmarshal([]byte(replicateYaml), &job)
-	if err != nil {
-		t.Fatal("Failed to parse batch-job-replicate yaml", err)
-	}
-	if !slices.Equal(job.Replicate.Source.Prefix.F(), []string{"object-prefix1"}) {
-		t.Fatal("Failed to parse batch-job-replicate yaml", err)
-	}
-	multiPrefixReplicateYaml := `
+    var job BatchJobRequest
+    err := yaml.Unmarshal([]byte(replicateYaml), &job)
+    if err != nil {
+        t.Fatal("Failed to parse batch-job-replicate yaml", err)
+    }
+    if !slices.Equal(job.Replicate.Source.Prefix.F(), []string{"object-prefix1"}) {
+        t.Fatal("Failed to parse batch-job-replicate yaml", err)
+    }
+    multiPrefixReplicateYaml := `
 replicate:
   apiVersion: v1
   # source of the objects to be replicated
@@ -171,12 +171,12 @@ replicate:
 #      delay: "500ms" # least amount of delay between each retry
 
 `
-	var multiPrefixJob BatchJobRequest
-	err = yaml.Unmarshal([]byte(multiPrefixReplicateYaml), &multiPrefixJob)
-	if err != nil {
-		t.Fatal("Failed to parse batch-job-replicate yaml", err)
-	}
-	if !slices.Equal(multiPrefixJob.Replicate.Source.Prefix.F(), []string{"object-prefix1", "object-prefix2"}) {
-		t.Fatal("Failed to parse batch-job-replicate yaml")
-	}
+    var multiPrefixJob BatchJobRequest
+    err = yaml.Unmarshal([]byte(multiPrefixReplicateYaml), &multiPrefixJob)
+    if err != nil {
+        t.Fatal("Failed to parse batch-job-replicate yaml", err)
+    }
+    if !slices.Equal(multiPrefixJob.Replicate.Source.Prefix.F(), []string{"object-prefix1", "object-prefix2"}) {
+        t.Fatal("Failed to parse batch-job-replicate yaml")
+    }
 }

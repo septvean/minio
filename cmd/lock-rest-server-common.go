@@ -18,11 +18,11 @@
 package cmd
 
 import (
-	"errors"
+    "errors"
 )
 
 var (
-	errLockConflict       = errors.New("lock conflict")
-	errLockNotInitialized = errors.New("lock not initialized")
-	errLockNotFound       = errors.New("lock not found")
+    errLockConflict       = errors.New("lock conflict")
+    errLockNotInitialized = errors.New("lock not initialized")
+    errLockNotFound       = errors.New("lock not found")
 )

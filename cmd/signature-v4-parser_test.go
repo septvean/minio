@@ -18,11 +18,11 @@
 package cmd
 
 import (
-	"net/url"
-	"strconv"
-	"strings"
-	"testing"
-	"time"
+    "net/url"
+    "strconv"
+    "strings"
+    "testing"
+    "time"
 )
 
 // generates credential string from its fields.

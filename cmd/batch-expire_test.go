@@ -18,14 +18,14 @@
 package cmd
 
 import (
-	"slices"
-	"testing"
+    "slices"
+    "testing"
 
-	"gopkg.in/yaml.v3"
+    "gopkg.in/yaml.v3"
 )
 
 func TestParseBatchJobExpire(t *testing.T) {
-	expireYaml := `
+    expireYaml := `
 expire: # Expire objects that match a condition
   apiVersion: v1
   bucket: mybucket # Bucket where this batch job will expire matching objects from
@@ -64,16 +64,16 @@ expire: # Expire objects that match a condition
     attempts: 10 # number of retries for the job before giving up
     delay: 500ms # least amount of delay between each retry
 `
-	var job BatchJobRequest
-	err := yaml.Unmarshal([]byte(expireYaml), &job)
-	if err != nil {
-		t.Fatal("Failed to parse batch-job-expire yaml", err)
-	}
-	if !slices.Equal(job.Expire.Prefix.F(), []string{"myprefix"}) {
-		t.Fatal("Failed to parse batch-job-expire yaml")
-	}
+    var job BatchJobRequest
+    err := yaml.Unmarshal([]byte(expireYaml), &job)
+    if err != nil {
+        t.Fatal("Failed to parse batch-job-expire yaml", err)
+    }
+    if !slices.Equal(job.Expire.Prefix.F(), []string{"myprefix"}) {
+        t.Fatal("Failed to parse batch-job-expire yaml")
+    }
 
-	multiPrefixExpireYaml := `
+    multiPrefixExpireYaml := `
 expire: # Expire objects that match a condition
   apiVersion: v1
   bucket: mybucket # Bucket where this batch job will expire matching objects from
@@ -114,12 +114,12 @@ expire: # Expire objects that match a condition
     attempts: 10 # number of retries for the job before giving up
     delay: 500ms # least amount of delay between each retry
 `
-	var multiPrefixJob BatchJobRequest
-	err = yaml.Unmarshal([]byte(multiPrefixExpireYaml), &multiPrefixJob)
-	if err != nil {
-		t.Fatal("Failed to parse batch-job-expire yaml", err)
-	}
-	if !slices.Equal(multiPrefixJob.Expire.Prefix.F(), []string{"myprefix", "myprefix1"}) {
-		t.Fatal("Failed to parse batch-job-expire yaml")
-	}
+    var multiPrefixJob BatchJobRequest
+    err = yaml.Unmarshal([]byte(multiPrefixExpireYaml), &multiPrefixJob)
+    if err != nil {
+        t.Fatal("Failed to parse batch-job-expire yaml", err)
+    }
+    if !slices.Equal(multiPrefixJob.Expire.Prefix.F(), []string{"myprefix", "myprefix1"}) {
+        t.Fatal("Failed to parse batch-job-expire yaml")
+    }
 }

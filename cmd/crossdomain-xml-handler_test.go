@@ -18,25 +18,25 @@
 package cmd
 
 import (
-	"net/http"
-	"net/http/httptest"
-	"testing"
+    "net/http"
+    "net/http/httptest"
+    "testing"
 
-	"github.com/minio/mux"
+    "github.com/minio/mux"
 )
 
 // Test cross domain xml handler.
 func TestCrossXMLHandler(t *testing.T) {
-	// Server initialization.
-	router := mux.NewRouter().SkipClean(true).UseEncodedPath()
-	handler := setCrossDomainPolicyMiddleware(router)
-	srv := httptest.NewServer(handler)
+    // Server initialization.
+    router := mux.NewRouter().SkipClean(true).UseEncodedPath()
+    handler := setCrossDomainPolicyMiddleware(router)
+    srv := httptest.NewServer(handler)
 
-	resp, err := http.Get(srv.URL + crossDomainXMLEntity)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if resp.StatusCode != http.StatusOK {
-		t.Fatal("Unexpected http status received", resp.Status)
-	}
+    resp, err := http.Get(srv.URL + crossDomainXMLEntity)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if resp.StatusCode != http.StatusOK {
+        t.Fatal("Unexpected http status received", resp.Status)
+    }
 }

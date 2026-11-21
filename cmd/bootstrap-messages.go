@@ -18,50 +18,50 @@
 package cmd
 
 import (
-	"context"
-	"sync"
+    "context"
+    "sync"
 
-	"github.com/minio/madmin-go/v3"
-	"github.com/minio/minio/internal/pubsub"
+    "github.com/minio/madmin-go/v3"
+    "github.com/minio/minio/internal/pubsub"
 )
 
 const bootstrapTraceLimit = 4 << 10
 
 type bootstrapTracer struct {
-	mu   sync.RWMutex
-	info []madmin.TraceInfo
+    mu   sync.RWMutex
+    info []madmin.TraceInfo
 }
 
 var globalBootstrapTracer = &bootstrapTracer{}
 
 func (bs *bootstrapTracer) Record(info madmin.TraceInfo) {
-	bs.mu.Lock()
-	defer bs.mu.Unlock()
+    bs.mu.Lock()
+    defer bs.mu.Unlock()
 
-	if len(bs.info) > bootstrapTraceLimit {
-		return
-	}
-	bs.info = append(bs.info, info)
+    if len(bs.info) > bootstrapTraceLimit {
+        return
+    }
+    bs.info = append(bs.info, info)
 }
 
 func (bs *bootstrapTracer) Events() []madmin.TraceInfo {
-	traceInfo := make([]madmin.TraceInfo, 0, bootstrapTraceLimit)
+    traceInfo := make([]madmin.TraceInfo, 0, bootstrapTraceLimit)
 
-	bs.mu.RLock()
-	traceInfo = append(traceInfo, bs.info...)
-	bs.mu.RUnlock()
+    bs.mu.RLock()
+    traceInfo = append(traceInfo, bs.info...)
+    bs.mu.RUnlock()
 
-	return traceInfo
+    return traceInfo
 }
 
 func (bs *bootstrapTracer) Publish(ctx context.Context, trace *pubsub.PubSub[madmin.TraceInfo, madmin.TraceType]) {
-	for _, bsEvent := range bs.Events() {
-		if bsEvent.Message != "" {
-			select {
-			case <-ctx.Done():
-			default:
-				trace.Publish(bsEvent)
-			}
-		}
-	}
+    for _, bsEvent := range bs.Events() {
+        if bsEvent.Message != "" {
+            select {
+            case <-ctx.Done():
+            default:
+                trace.Publish(bsEvent)
+            }
+        }
+    }
 }

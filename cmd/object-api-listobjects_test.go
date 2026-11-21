@@ -18,17 +18,17 @@
 package cmd
 
 import (
-	"bytes"
-	"context"
-	"crypto/md5"
-	"encoding/hex"
-	"fmt"
-	"strconv"
-	"strings"
-	"testing"
-	"time"
+    "bytes"
+    "context"
+    "crypto/md5"
+    "encoding/hex"
+    "fmt"
+    "strconv"
+    "strings"
+    "testing"
+    "time"
 
-	"github.com/minio/minio/internal/bucket/lifecycle"
+    "github.com/minio/minio/internal/bucket/lifecycle"
 )
 
 func TestListObjectsVersionedFolders(t *testing.T) {

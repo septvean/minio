@@ -18,15 +18,15 @@
 package cmd
 
 import (
-	"bytes"
-	"context"
-	"encoding/xml"
-	"io"
-	"os"
-	"strings"
+    "bytes"
+    "context"
+    "encoding/xml"
+    "io"
+    "os"
+    "strings"
 
-	"github.com/minio/madmin-go/v3"
-	"github.com/minio/minio/internal/logger"
+    "github.com/minio/madmin-go/v3"
+    "github.com/minio/minio/internal/logger"
 )
 
 // From Veeam-SOSAPI_1.0_Document_v1.02d.pdf
@@ -82,8 +82,8 @@ import (
 //
 // - The current protocol version is 1.0.
 type apiEndpoints struct {
-	IAMEndpoint string `xml:"IAMEndpoint"`
-	STSEndpoint string `xml:"STSEndpoint"`
+    IAMEndpoint string `xml:"IAMEndpoint"`
+    STSEndpoint string `xml:"STSEndpoint"`
 }
 
 // globalVeeamForceSC is set by the environment variable _MINIO_VEEAM_FORCE_SC
@@ -92,21 +92,21 @@ type apiEndpoints struct {
 var globalVeeamForceSC = os.Getenv("_MINIO_VEEAM_FORCE_SC")
 
 type systemInfo struct {
-	XMLName              xml.Name `xml:"SystemInfo" json:"-"`
-	ProtocolVersion      string   `xml:"ProtocolVersion"`
-	ModelName            string   `xml:"ModelName"`
-	ProtocolCapabilities struct {
-		CapacityInfo   bool `xml:"CapacityInfo"`
-		UploadSessions bool `xml:"UploadSessions"`
-		IAMSTS         bool `xml:"IAMSTS"`
-	} `mxl:"ProtocolCapabilities"`
-	APIEndpoints          *apiEndpoints `xml:"APIEndpoints,omitempty"`
-	SystemRecommendations struct {
-		S3ConcurrentTaskLimit    int `xml:"S3ConcurrentTaskLimit,omitempty"`
-		S3MultiObjectDeleteLimit int `xml:"S3MultiObjectDeleteLimit,omitempty"`
-		StorageCurrentTaskLimit  int `xml:"StorageCurrentTaskLimit,omitempty"`
-		KBBlockSize              int `xml:"KbBlockSize"`
-	} `xml:"SystemRecommendations"`
+    XMLName              xml.Name `xml:"SystemInfo" json:"-"`
+    ProtocolVersion      string   `xml:"ProtocolVersion"`
+    ModelName            string   `xml:"ModelName"`
+    ProtocolCapabilities struct {
+        CapacityInfo   bool `xml:"CapacityInfo"`
+        UploadSessions bool `xml:"UploadSessions"`
+        IAMSTS         bool `xml:"IAMSTS"`
+    }   `mxl:"ProtocolCapabilities"`
+    APIEndpoints          *apiEndpoints `xml:"APIEndpoints,omitempty"`
+    SystemRecommendations struct {
+        S3ConcurrentTaskLimit    int `xml:"S3ConcurrentTaskLimit,omitempty"`
+        S3MultiObjectDeleteLimit int `xml:"S3MultiObjectDeleteLimit,omitempty"`
+        StorageCurrentTaskLimit  int `xml:"StorageCurrentTaskLimit,omitempty"`
+        KBBlockSize              int `xml:"KbBlockSize"`
+    }   `xml:"SystemRecommendations"`
 }
 
 // This optional functionality allows vendors to report space information to Veeam products, and Veeam will make placement
@@ -114,113 +114,113 @@ type systemInfo struct {
 // multiple buckets can be used together. The placement logic for additional backup files is based on available space. Other values
 // will augment the Veeam user interface and statistics, including free space warnings.
 type capacityInfo struct {
-	XMLName   xml.Name `xml:"CapacityInfo" json:"-"`
-	Capacity  int64    `xml:"Capacity"`
-	Available int64    `xml:"Available"`
-	Used      int64    `xml:"Used"`
+    XMLName   xml.Name `xml:"CapacityInfo" json:"-"`
+    Capacity  int64    `xml:"Capacity"`
+    Available int64    `xml:"Available"`
+    Used      int64    `xml:"Used"`
 }
 
 const (
-	systemXMLObject   = ".system-d26a9498-cb7c-4a87-a44a-8ae204f5ba6c/system.xml"
-	capacityXMLObject = ".system-d26a9498-cb7c-4a87-a44a-8ae204f5ba6c/capacity.xml"
-	veeamAgentSubstr  = "APN/1.0 Veeam/1.0"
+    systemXMLObject   = ".system-d26a9498-cb7c-4a87-a44a-8ae204f5ba6c/system.xml"
+    capacityXMLObject = ".system-d26a9498-cb7c-4a87-a44a-8ae204f5ba6c/capacity.xml"
+    veeamAgentSubstr  = "APN/1.0 Veeam/1.0"
 )
 
 func isVeeamSOSAPIObject(object string) bool {
-	switch object {
-	case systemXMLObject, capacityXMLObject:
-		return true
-	default:
-		return false
-	}
+    switch object {
+    case systemXMLObject, capacityXMLObject:
+        return true
+    default:
+        return false
+    }
 }
 
 // isVeeamClient - returns true if the request is from Veeam client.
 func isVeeamClient(ctx context.Context) bool {
-	ri := logger.GetReqInfo(ctx)
-	return ri != nil && strings.Contains(ri.UserAgent, veeamAgentSubstr)
+    ri := logger.GetReqInfo(ctx)
+    return ri != nil && strings.Contains(ri.UserAgent, veeamAgentSubstr)
 }
 
 func veeamSOSAPIHeadObject(ctx context.Context, bucket, object string, opts ObjectOptions) (ObjectInfo, error) {
-	gr, err := veeamSOSAPIGetObject(ctx, bucket, object, nil, opts)
-	if gr != nil {
-		gr.Close()
-		return gr.ObjInfo, nil
-	}
-	return ObjectInfo{}, err
+    gr, err := veeamSOSAPIGetObject(ctx, bucket, object, nil, opts)
+    if gr != nil {
+        gr.Close()
+        return gr.ObjInfo, nil
+    }
+    return ObjectInfo{}, err
 }
 
 func veeamSOSAPIGetObject(ctx context.Context, bucket, object string, rs *HTTPRangeSpec, opts ObjectOptions) (gr *GetObjectReader, err error) {
-	var buf []byte
-	switch object {
-	case systemXMLObject:
-		si := systemInfo{
-			ProtocolVersion: `"1.0"`,
-			ModelName:       "\"MinIO " + ReleaseTag + "\"",
-		}
-		si.ProtocolCapabilities.CapacityInfo = true
+    var buf []byte
+    switch object {
+    case systemXMLObject:
+        si := systemInfo{
+            ProtocolVersion: `"1.0"`,
+            ModelName:       "\"MinIO " + ReleaseTag + "\"",
+        }
+        si.ProtocolCapabilities.CapacityInfo = true
 
-		// Default recommended block size with MinIO
-		si.SystemRecommendations.KBBlockSize = 4096
+        // Default recommended block size with MinIO
+        si.SystemRecommendations.KBBlockSize = 4096
 
-		buf = encodeResponse(&si)
-	case capacityXMLObject:
-		objAPI := newObjectLayerFn()
-		if objAPI == nil {
-			return nil, errServerNotInitialized
-		}
+        buf = encodeResponse(&si)
+    case capacityXMLObject:
+        objAPI := newObjectLayerFn()
+        if objAPI == nil {
+            return nil, errServerNotInitialized
+        }
 
-		q, _ := globalBucketQuotaSys.Get(ctx, bucket)
-		binfo := globalBucketQuotaSys.GetBucketUsageInfo(ctx, bucket)
+        q, _ := globalBucketQuotaSys.Get(ctx, bucket)
+        binfo := globalBucketQuotaSys.GetBucketUsageInfo(ctx, bucket)
 
-		ci := capacityInfo{
-			Used: int64(binfo.Size),
-		}
+        ci := capacityInfo{
+            Used: int64(binfo.Size),
+        }
 
-		var quotaSize int64
-		if q != nil && q.Type == madmin.HardQuota {
-			if q.Size > 0 {
-				quotaSize = int64(q.Size)
-			} else if q.Quota > 0 {
-				quotaSize = int64(q.Quota)
-			}
-		}
+        var quotaSize int64
+        if q != nil && q.Type == madmin.HardQuota {
+            if q.Size > 0 {
+                quotaSize = int64(q.Size)
+            } else if q.Quota > 0 {
+                quotaSize = int64(q.Quota)
+            }
+        }
 
-		if quotaSize == 0 {
-			info := objAPI.StorageInfo(ctx, true)
-			info.Backend = objAPI.BackendInfo()
+        if quotaSize == 0 {
+            info := objAPI.StorageInfo(ctx, true)
+            info.Backend = objAPI.BackendInfo()
 
-			ci.Capacity = int64(GetTotalUsableCapacity(info.Disks, info))
-		} else {
-			ci.Capacity = quotaSize
-		}
-		ci.Available = ci.Capacity - ci.Used
+            ci.Capacity = int64(GetTotalUsableCapacity(info.Disks, info))
+        } else {
+            ci.Capacity = quotaSize
+        }
+        ci.Available = ci.Capacity - ci.Used
 
-		buf = encodeResponse(&ci)
-	default:
-		return nil, errFileNotFound
-	}
+        buf = encodeResponse(&ci)
+    default:
+        return nil, errFileNotFound
+    }
 
-	etag := getMD5Hash(buf)
-	r := bytes.NewReader(buf)
+    etag := getMD5Hash(buf)
+    r := bytes.NewReader(buf)
 
-	off, length := int64(0), r.Size()
-	if rs != nil {
-		off, length, err = rs.GetOffsetLength(r.Size())
-		if err != nil {
-			return nil, err
-		}
-	}
-	r.Seek(off, io.SeekStart)
+    off, length := int64(0), r.Size()
+    if rs != nil {
+        off, length, err = rs.GetOffsetLength(r.Size())
+        if err != nil {
+            return nil, err
+        }
+    }
+    r.Seek(off, io.SeekStart)
 
-	return NewGetObjectReaderFromReader(io.LimitReader(r, length), ObjectInfo{
-		Bucket:      bucket,
-		Name:        object,
-		Size:        r.Size(),
-		IsLatest:    true,
-		ContentType: string(mimeXML),
-		NumVersions: 1,
-		ETag:        etag,
-		ModTime:     UTCNow(),
-	}, opts)
+    return NewGetObjectReaderFromReader(io.LimitReader(r, length), ObjectInfo{
+        Bucket:      bucket,
+        Name:        object,
+        Size:        r.Size(),
+        IsLatest:    true,
+        ContentType: string(mimeXML),
+        NumVersions: 1,
+        ETag:        etag,
+        ModTime:     UTCNow(),
+    }, opts)
 }

@@ -18,40 +18,40 @@
 package cmd
 
 import (
-	"sync"
+    "sync"
 
-	"github.com/minio/minio/internal/config/ilm"
+    "github.com/minio/minio/internal/config/ilm"
 )
 
 var globalILMConfig = ilmConfig{
-	cfg: ilm.Config{
-		ExpirationWorkers: 100,
-		TransitionWorkers: 100,
-	},
+    cfg: ilm.Config{
+        ExpirationWorkers: 100,
+        TransitionWorkers: 100,
+    },
 }
 
 type ilmConfig struct {
-	mu  sync.RWMutex
-	cfg ilm.Config
+    mu  sync.RWMutex
+    cfg ilm.Config
 }
 
 func (c *ilmConfig) getExpirationWorkers() int {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+    c.mu.RLock()
+    defer c.mu.RUnlock()
 
-	return c.cfg.ExpirationWorkers
+    return c.cfg.ExpirationWorkers
 }
 
 func (c *ilmConfig) getTransitionWorkers() int {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+    c.mu.RLock()
+    defer c.mu.RUnlock()
 
-	return c.cfg.TransitionWorkers
+    return c.cfg.TransitionWorkers
 }
 
 func (c *ilmConfig) update(cfg ilm.Config) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+    c.mu.Lock()
+    defer c.mu.Unlock()
 
-	c.cfg = cfg
+    c.cfg = cfg
 }

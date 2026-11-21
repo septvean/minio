@@ -18,16 +18,16 @@
 package cmd
 
 import (
-	"bytes"
-	"encoding/base64"
-	"net/http"
-	"testing"
+    "bytes"
+    "encoding/base64"
+    "net/http"
+    "testing"
 
-	humanize "github.com/dustin/go-humanize"
-	"github.com/minio/minio-go/v7/pkg/encrypt"
-	"github.com/minio/minio/internal/crypto"
-	xhttp "github.com/minio/minio/internal/http"
-	"github.com/minio/sio"
+    humanize "github.com/dustin/go-humanize"
+    "github.com/minio/minio-go/v7/pkg/encrypt"
+    "github.com/minio/minio/internal/crypto"
+    xhttp "github.com/minio/minio/internal/http"
+    "github.com/minio/sio"
 )
 
 var encryptRequestTests = []struct {

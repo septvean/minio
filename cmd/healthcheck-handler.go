@@ -18,195 +18,195 @@
 package cmd
 
 import (
-	"context"
-	"net/http"
-	"strconv"
-	"time"
+    "context"
+    "net/http"
+    "strconv"
+    "time"
 
-	xhttp "github.com/minio/minio/internal/http"
-	"github.com/minio/minio/internal/kms"
+    xhttp "github.com/minio/minio/internal/http"
+    "github.com/minio/minio/internal/kms"
 )
 
 const unavailable = "offline"
 
 func checkHealth(w http.ResponseWriter) ObjectLayer {
-	objLayer := newObjectLayerFn()
-	if objLayer == nil {
-		w.Header().Set(xhttp.MinIOServerStatus, unavailable)
-		writeResponse(w, http.StatusServiceUnavailable, nil, mimeNone)
-		return nil
-	}
+    objLayer := newObjectLayerFn()
+    if objLayer == nil {
+        w.Header().Set(xhttp.MinIOServerStatus, unavailable)
+        writeResponse(w, http.StatusServiceUnavailable, nil, mimeNone)
+        return nil
+    }
 
-	if !globalBucketMetadataSys.Initialized() {
-		w.Header().Set(xhttp.MinIOServerStatus, "bucket-metadata-offline")
-		writeResponse(w, http.StatusServiceUnavailable, nil, mimeNone)
-		return nil
-	}
+    if !globalBucketMetadataSys.Initialized() {
+        w.Header().Set(xhttp.MinIOServerStatus, "bucket-metadata-offline")
+        writeResponse(w, http.StatusServiceUnavailable, nil, mimeNone)
+        return nil
+    }
 
-	if !globalIAMSys.Initialized() {
-		w.Header().Set(xhttp.MinIOServerStatus, "iam-offline")
-		writeResponse(w, http.StatusServiceUnavailable, nil, mimeNone)
-		return nil
-	}
+    if !globalIAMSys.Initialized() {
+        w.Header().Set(xhttp.MinIOServerStatus, "iam-offline")
+        writeResponse(w, http.StatusServiceUnavailable, nil, mimeNone)
+        return nil
+    }
 
-	return objLayer
+    return objLayer
 }
 
 // ClusterCheckHandler returns if the server is ready for requests.
 func ClusterCheckHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := newContext(r, w, "ClusterCheckHandler")
+    ctx := newContext(r, w, "ClusterCheckHandler")
 
-	objLayer := checkHealth(w)
-	if objLayer == nil {
-		return
-	}
+    objLayer := checkHealth(w)
+    if objLayer == nil {
+        return
+    }
 
-	ctx, cancel := context.WithTimeout(ctx, globalAPIConfig.getClusterDeadline())
-	defer cancel()
+    ctx, cancel := context.WithTimeout(ctx, globalAPIConfig.getClusterDeadline())
+    defer cancel()
 
-	opts := HealthOptions{
-		Maintenance:    r.Form.Get("maintenance") == "true",
-		DeploymentType: r.Form.Get("deployment-type"),
-	}
-	result := objLayer.Health(ctx, opts)
-	w.Header().Set(xhttp.MinIOWriteQuorum, strconv.Itoa(result.WriteQuorum))
-	w.Header().Set(xhttp.MinIOStorageClassDefaults, strconv.FormatBool(result.UsingDefaults))
-	// return how many drives are being healed if any
-	if result.HealingDrives > 0 {
-		w.Header().Set(xhttp.MinIOHealingDrives, strconv.Itoa(result.HealingDrives))
-	}
-	if !result.Healthy {
-		// As a maintenance call we are purposefully asked to be taken
-		// down, this is for orchestrators to know if we can safely
-		// take this server down, return appropriate error.
-		if opts.Maintenance {
-			writeResponse(w, http.StatusPreconditionFailed, nil, mimeNone)
-		} else {
-			writeResponse(w, http.StatusServiceUnavailable, nil, mimeNone)
-		}
-		return
-	}
-	writeResponse(w, http.StatusOK, nil, mimeNone)
+    opts := HealthOptions{
+        Maintenance:    r.Form.Get("maintenance") == "true",
+        DeploymentType: r.Form.Get("deployment-type"),
+    }
+    result := objLayer.Health(ctx, opts)
+    w.Header().Set(xhttp.MinIOWriteQuorum, strconv.Itoa(result.WriteQuorum))
+    w.Header().Set(xhttp.MinIOStorageClassDefaults, strconv.FormatBool(result.UsingDefaults))
+    // return how many drives are being healed if any
+    if result.HealingDrives > 0 {
+        w.Header().Set(xhttp.MinIOHealingDrives, strconv.Itoa(result.HealingDrives))
+    }
+    if !result.Healthy {
+        // As a maintenance call we are purposefully asked to be taken
+        // down, this is for orchestrators to know if we can safely
+        // take this server down, return appropriate error.
+        if opts.Maintenance {
+            writeResponse(w, http.StatusPreconditionFailed, nil, mimeNone)
+        } else {
+            writeResponse(w, http.StatusServiceUnavailable, nil, mimeNone)
+        }
+        return
+    }
+    writeResponse(w, http.StatusOK, nil, mimeNone)
 }
 
 // ClusterReadCheckHandler returns if the server is ready for requests.
 func ClusterReadCheckHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := newContext(r, w, "ClusterReadCheckHandler")
+    ctx := newContext(r, w, "ClusterReadCheckHandler")
 
-	objLayer := checkHealth(w)
-	if objLayer == nil {
-		return
-	}
+    objLayer := checkHealth(w)
+    if objLayer == nil {
+        return
+    }
 
-	ctx, cancel := context.WithTimeout(ctx, globalAPIConfig.getClusterDeadline())
-	defer cancel()
+    ctx, cancel := context.WithTimeout(ctx, globalAPIConfig.getClusterDeadline())
+    defer cancel()
 
-	opts := HealthOptions{
-		Maintenance:    r.Form.Get("maintenance") == "true",
-		DeploymentType: r.Form.Get("deployment-type"),
-	}
-	result := objLayer.Health(ctx, opts)
-	w.Header().Set(xhttp.MinIOReadQuorum, strconv.Itoa(result.ReadQuorum))
-	w.Header().Set(xhttp.MinIOStorageClassDefaults, strconv.FormatBool(result.UsingDefaults))
-	// return how many drives are being healed if any
-	if result.HealingDrives > 0 {
-		w.Header().Set(xhttp.MinIOHealingDrives, strconv.Itoa(result.HealingDrives))
-	}
-	if !result.HealthyRead {
-		// As a maintenance call we are purposefully asked to be taken
-		// down, this is for orchestrators to know if we can safely
-		// take this server down, return appropriate error.
-		if opts.Maintenance {
-			writeResponse(w, http.StatusPreconditionFailed, nil, mimeNone)
-		} else {
-			writeResponse(w, http.StatusServiceUnavailable, nil, mimeNone)
-		}
-		return
-	}
-	writeResponse(w, http.StatusOK, nil, mimeNone)
+    opts := HealthOptions{
+        Maintenance:    r.Form.Get("maintenance") == "true",
+        DeploymentType: r.Form.Get("deployment-type"),
+    }
+    result := objLayer.Health(ctx, opts)
+    w.Header().Set(xhttp.MinIOReadQuorum, strconv.Itoa(result.ReadQuorum))
+    w.Header().Set(xhttp.MinIOStorageClassDefaults, strconv.FormatBool(result.UsingDefaults))
+    // return how many drives are being healed if any
+    if result.HealingDrives > 0 {
+        w.Header().Set(xhttp.MinIOHealingDrives, strconv.Itoa(result.HealingDrives))
+    }
+    if !result.HealthyRead {
+        // As a maintenance call we are purposefully asked to be taken
+        // down, this is for orchestrators to know if we can safely
+        // take this server down, return appropriate error.
+        if opts.Maintenance {
+            writeResponse(w, http.StatusPreconditionFailed, nil, mimeNone)
+        } else {
+            writeResponse(w, http.StatusServiceUnavailable, nil, mimeNone)
+        }
+        return
+    }
+    writeResponse(w, http.StatusOK, nil, mimeNone)
 }
 
 // ReadinessCheckHandler checks whether MinIO is up and ready to serve requests.
 // It also checks whether the KMS is available and whether etcd is reachable,
 // if configured.
 func ReadinessCheckHandler(w http.ResponseWriter, r *http.Request) {
-	if objLayer := newObjectLayerFn(); objLayer == nil {
-		w.Header().Set(xhttp.MinIOServerStatus, unavailable) // Service not initialized yet
-	}
-	if r.Header.Get(xhttp.MinIOPeerCall) != "" {
-		writeResponse(w, http.StatusOK, nil, mimeNone)
-		return
-	}
+    if objLayer := newObjectLayerFn(); objLayer == nil {
+        w.Header().Set(xhttp.MinIOServerStatus, unavailable) // Service not initialized yet
+    }
+    if r.Header.Get(xhttp.MinIOPeerCall) != "" {
+        writeResponse(w, http.StatusOK, nil, mimeNone)
+        return
+    }
 
-	if int(globalHTTPStats.loadRequestsInQueue()) > globalAPIConfig.getRequestsPoolCapacity() {
-		apiErr := getAPIError(ErrBusy)
-		switch r.Method {
-		case http.MethodHead:
-			writeResponse(w, apiErr.HTTPStatusCode, nil, mimeNone)
-		case http.MethodGet:
-			writeErrorResponse(r.Context(), w, apiErr, r.URL)
-		}
-		return
-	}
+    if int(globalHTTPStats.loadRequestsInQueue()) > globalAPIConfig.getRequestsPoolCapacity() {
+        apiErr := getAPIError(ErrBusy)
+        switch r.Method {
+        case http.MethodHead:
+            writeResponse(w, apiErr.HTTPStatusCode, nil, mimeNone)
+        case http.MethodGet:
+            writeErrorResponse(r.Context(), w, apiErr, r.URL)
+        }
+        return
+    }
 
-	// Verify if KMS is reachable if its configured
-	if GlobalKMS != nil {
-		ctx, cancel := context.WithTimeout(r.Context(), time.Minute)
-		defer cancel()
+    // Verify if KMS is reachable if its configured
+    if GlobalKMS != nil {
+        ctx, cancel := context.WithTimeout(r.Context(), time.Minute)
+        defer cancel()
 
-		if _, err := GlobalKMS.GenerateKey(ctx, &kms.GenerateKeyRequest{AssociatedData: kms.Context{"healthcheck": ""}}); err != nil {
-			switch r.Method {
-			case http.MethodHead:
-				apiErr := toAPIError(r.Context(), err)
-				writeResponse(w, apiErr.HTTPStatusCode, nil, mimeNone)
-			case http.MethodGet:
-				writeErrorResponse(r.Context(), w, toAPIError(r.Context(), err), r.URL)
-			}
-			return
-		}
-	}
+        if _, err := GlobalKMS.GenerateKey(ctx, &kms.GenerateKeyRequest{AssociatedData: kms.Context{"healthcheck": ""}}); err != nil {
+            switch r.Method {
+            case http.MethodHead:
+                apiErr := toAPIError(r.Context(), err)
+                writeResponse(w, apiErr.HTTPStatusCode, nil, mimeNone)
+            case http.MethodGet:
+                writeErrorResponse(r.Context(), w, toAPIError(r.Context(), err), r.URL)
+            }
+            return
+        }
+    }
 
-	if globalEtcdClient != nil {
-		// Borrowed from
-		// https://github.com/etcd-io/etcd/blob/main/etcdctl/ctlv3/command/ep_command.go#L118
-		ctx, cancel := context.WithTimeout(r.Context(), defaultContextTimeout)
-		defer cancel()
-		if _, err := globalEtcdClient.Get(ctx, "health"); err != nil {
-			// etcd unreachable throw an error..
-			switch r.Method {
-			case http.MethodHead:
-				apiErr := toAPIError(r.Context(), err)
-				writeResponse(w, apiErr.HTTPStatusCode, nil, mimeNone)
-			case http.MethodGet:
-				writeErrorResponse(r.Context(), w, toAPIError(r.Context(), err), r.URL)
-			}
-			return
-		}
-	}
-	writeResponse(w, http.StatusOK, nil, mimeNone)
+    if globalEtcdClient != nil {
+        // Borrowed from
+        // https://github.com/etcd-io/etcd/blob/main/etcdctl/ctlv3/command/ep_command.go#L118
+        ctx, cancel := context.WithTimeout(r.Context(), defaultContextTimeout)
+        defer cancel()
+        if _, err := globalEtcdClient.Get(ctx, "health"); err != nil {
+            // etcd unreachable throw an error..
+            switch r.Method {
+            case http.MethodHead:
+                apiErr := toAPIError(r.Context(), err)
+                writeResponse(w, apiErr.HTTPStatusCode, nil, mimeNone)
+            case http.MethodGet:
+                writeErrorResponse(r.Context(), w, toAPIError(r.Context(), err), r.URL)
+            }
+            return
+        }
+    }
+    writeResponse(w, http.StatusOK, nil, mimeNone)
 }
 
 // LivenessCheckHandler checks whether MinIO is up. It differs from the
 // readiness handler since a failing liveness check causes pod restarts
 // in K8S environments. Therefore, it does not contact external systems.
 func LivenessCheckHandler(w http.ResponseWriter, r *http.Request) {
-	if objLayer := newObjectLayerFn(); objLayer == nil {
-		w.Header().Set(xhttp.MinIOServerStatus, unavailable) // Service not initialized yet
-	}
-	if r.Header.Get(xhttp.MinIOPeerCall) != "" {
-		writeResponse(w, http.StatusOK, nil, mimeNone)
-		return
-	}
+    if objLayer := newObjectLayerFn(); objLayer == nil {
+        w.Header().Set(xhttp.MinIOServerStatus, unavailable) // Service not initialized yet
+    }
+    if r.Header.Get(xhttp.MinIOPeerCall) != "" {
+        writeResponse(w, http.StatusOK, nil, mimeNone)
+        return
+    }
 
-	if int(globalHTTPStats.loadRequestsInQueue()) > globalAPIConfig.getRequestsPoolCapacity() {
-		apiErr := getAPIError(ErrBusy)
-		switch r.Method {
-		case http.MethodHead:
-			writeResponse(w, apiErr.HTTPStatusCode, nil, mimeNone)
-		case http.MethodGet:
-			writeErrorResponse(r.Context(), w, apiErr, r.URL)
-		}
-		return
-	}
-	writeResponse(w, http.StatusOK, nil, mimeNone)
+    if int(globalHTTPStats.loadRequestsInQueue()) > globalAPIConfig.getRequestsPoolCapacity() {
+        apiErr := getAPIError(ErrBusy)
+        switch r.Method {
+        case http.MethodHead:
+            writeResponse(w, apiErr.HTTPStatusCode, nil, mimeNone)
+        case http.MethodGet:
+            writeErrorResponse(r.Context(), w, apiErr, r.URL)
+        }
+        return
+    }
+    writeResponse(w, http.StatusOK, nil, mimeNone)
 }

@@ -18,21 +18,21 @@
 package cmd
 
 import (
-	"bytes"
-	"context"
-	"crypto/md5"
-	crand "crypto/rand"
-	"errors"
-	"fmt"
-	"io"
-	"os"
-	"path/filepath"
-	"runtime"
-	"strconv"
-	"testing"
+    "bytes"
+    "context"
+    "crypto/md5"
+    crand "crypto/rand"
+    "errors"
+    "fmt"
+    "io"
+    "os"
+    "path/filepath"
+    "runtime"
+    "strconv"
+    "testing"
 
-	"github.com/dustin/go-humanize"
-	"github.com/minio/minio/internal/config/storageclass"
+    "github.com/dustin/go-humanize"
+    "github.com/minio/minio/internal/config/storageclass"
 )
 
 func TestRepeatPutObjectPart(t *testing.T) {

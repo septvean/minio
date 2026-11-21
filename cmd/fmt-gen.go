@@ -18,39 +18,39 @@
 package cmd
 
 import (
-	"encoding/json"
-	"log"
-	"os"
-	"path/filepath"
+    "encoding/json"
+    "log"
+    "os"
+    "path/filepath"
 
-	"github.com/klauspost/compress/zip"
-	"github.com/minio/cli"
+    "github.com/klauspost/compress/zip"
+    "github.com/minio/cli"
 )
 
 var fmtGenFlags = []cli.Flag{
-	cli.IntFlag{
-		Name:  "parity",
-		Usage: "specify erasure code parity",
-	},
-	cli.StringFlag{
-		Name:  "deployment-id",
-		Usage: "deployment-id of the MinIO cluster for which format.json is needed",
-	},
-	cli.StringFlag{
-		Name:   "address",
-		Value:  ":" + GlobalMinioDefaultPort,
-		Usage:  "bind to a specific ADDRESS:PORT, ADDRESS can be an IP or hostname",
-		EnvVar: "MINIO_ADDRESS",
-	},
+    cli.IntFlag{
+        Name:  "parity",
+        Usage: "specify erasure code parity",
+    },
+    cli.StringFlag{
+        Name:  "deployment-id",
+        Usage: "deployment-id of the MinIO cluster for which format.json is needed",
+    },
+    cli.StringFlag{
+        Name:   "address",
+        Value:  ":" + GlobalMinioDefaultPort,
+        Usage:  "bind to a specific ADDRESS:PORT, ADDRESS can be an IP or hostname",
+        EnvVar: "MINIO_ADDRESS",
+    },
 }
 
 var fmtGenCmd = cli.Command{
-	Name:   "fmt-gen",
-	Usage:  "Generate format.json files for an erasure server pool",
-	Flags:  append(fmtGenFlags, GlobalFlags...),
-	Action: fmtGenMain,
-	Hidden: true,
-	CustomHelpTemplate: `NAME:
+    Name:   "fmt-gen",
+    Usage:  "Generate format.json files for an erasure server pool",
+    Flags:  append(fmtGenFlags, GlobalFlags...),
+    Action: fmtGenMain,
+    Hidden: true,
+    CustomHelpTemplate: `NAME:
   {{.HelpName}} - {{.Usage}}
 
 USAGE:
@@ -76,44 +76,44 @@ EXAMPLES:
 }
 
 func fmtGenMain(ctxt *cli.Context) {
-	deploymentID := ctxt.String("deployment-id")
-	err := buildServerCtxt(ctxt, &globalServerCtxt)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	handleCommonArgs(globalServerCtxt)
-	pools, _, err := createServerEndpoints(globalMinioAddr, globalServerCtxt.Layout.pools, globalServerCtxt.Layout.legacy)
-	if err != nil {
-		log.Fatalln(err)
-	}
+    deploymentID := ctxt.String("deployment-id")
+    err := buildServerCtxt(ctxt, &globalServerCtxt)
+    if err != nil {
+        log.Fatalln(err)
+    }
+    handleCommonArgs(globalServerCtxt)
+    pools, _, err := createServerEndpoints(globalMinioAddr, globalServerCtxt.Layout.pools, globalServerCtxt.Layout.legacy)
+    if err != nil {
+        log.Fatalln(err)
+    }
 
-	zipFile, err := os.Create("format.json.zip")
-	if err != nil {
-		log.Fatalf("failed to create format.json.zip: %v", err)
-	}
-	defer zipFile.Close()
-	fmtZipW := zip.NewWriter(zipFile)
-	defer fmtZipW.Close()
-	for _, pool := range pools { // for each pool
-		setCount, setDriveCount := pool.SetCount, pool.DrivesPerSet
-		format := newFormatErasureV3(setCount, setDriveCount)
-		format.ID = deploymentID
-		for i := range setCount { // for each erasure set
-			for j := range setDriveCount {
-				newFormat := format.Clone()
-				newFormat.Erasure.This = format.Erasure.Sets[i][j]
-				if deploymentID != "" {
-					newFormat.ID = deploymentID
-				}
-				drive := pool.Endpoints[i*setDriveCount+j]
-				fmtBytes, err := json.Marshal(newFormat)
-				if err != nil {
-					//nolint:gocritic
-					log.Fatalf("failed to marshal format.json for %s: %v", drive.String(), err)
-				}
-				fmtJSON := filepath.Join(drive.Host, drive.Path, minioMetaBucket, "format.json")
-				embedFileInZip(fmtZipW, fmtJSON, fmtBytes, 0o600)
-			}
-		}
-	}
+    zipFile, err := os.Create("format.json.zip")
+    if err != nil {
+        log.Fatalf("failed to create format.json.zip: %v", err)
+    }
+    defer zipFile.Close()
+    fmtZipW := zip.NewWriter(zipFile)
+    defer fmtZipW.Close()
+    for _, pool := range pools { // for each pool
+        setCount, setDriveCount := pool.SetCount, pool.DrivesPerSet
+        format := newFormatErasureV3(setCount, setDriveCount)
+        format.ID = deploymentID
+        for i := range setCount { // for each erasure set
+            for j := range setDriveCount {
+                newFormat := format.Clone()
+                newFormat.Erasure.This = format.Erasure.Sets[i][j]
+                if deploymentID != "" {
+                    newFormat.ID = deploymentID
+                }
+                drive := pool.Endpoints[i*setDriveCount+j]
+                fmtBytes, err := json.Marshal(newFormat)
+                if err != nil {
+                    //nolint:gocritic
+                    log.Fatalf("failed to marshal format.json for %s: %v", drive.String(), err)
+                }
+                fmtJSON := filepath.Join(drive.Host, drive.Path, minioMetaBucket, "format.json")
+                embedFileInZip(fmtZipW, fmtJSON, fmtBytes, 0o600)
+            }
+        }
+    }
 }

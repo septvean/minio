@@ -17,16 +17,16 @@
 package cmd
 
 import (
-	"net/http"
-	"strings"
+    "net/http"
+    "strings"
 )
 
 // guessIsLoginSTSReq - returns true if incoming request is Login STS user
 func guessIsLoginSTSReq(req *http.Request) bool {
-	if req == nil {
-		return false
-	}
-	return strings.HasPrefix(req.URL.Path, loginPathPrefix) ||
-		(req.Method == http.MethodPost && req.URL.Path == SlashSeparator &&
-			getRequestAuthType(req) == authTypeSTS)
+    if req == nil {
+        return false
+    }
+    return strings.HasPrefix(req.URL.Path, loginPathPrefix) ||
+        (req.Method == http.MethodPost && req.URL.Path == SlashSeparator &&
+            getRequestAuthType(req) == authTypeSTS)
 }

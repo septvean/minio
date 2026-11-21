@@ -20,13 +20,13 @@
 package cmd
 
 import (
-	"os"
+    "os"
 )
 
 var (
-	// No special option for reads on windows
-	readMode = os.O_RDONLY
+    // No special option for reads on windows
+    readMode = os.O_RDONLY
 
-	// Write with sync no buffering only used only for `xl.meta` writes
-	writeMode = os.O_SYNC
+    // Write with sync no buffering only used only for `xl.meta` writes
+    writeMode = os.O_SYNC
 )

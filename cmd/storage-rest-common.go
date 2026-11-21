@@ -20,67 +20,67 @@ package cmd
 //go:generate msgp -file $GOFILE -unexported
 
 const (
-	storageRESTVersion       = "v63" // Introduce RenamePart and ReadParts API
-	storageRESTVersionPrefix = SlashSeparator + storageRESTVersion
-	storageRESTPrefix        = minioReservedBucketPath + "/storage"
+    storageRESTVersion       = "v63" // Introduce RenamePart and ReadParts API
+    storageRESTVersionPrefix = SlashSeparator + storageRESTVersion
+    storageRESTPrefix        = minioReservedBucketPath + "/storage"
 )
 
 const (
-	storageRESTMethodHealth = "/health"
+    storageRESTMethodHealth = "/health"
 
-	storageRESTMethodAppendFile     = "/afile"
-	storageRESTMethodCreateFile     = "/cfile"
-	storageRESTMethodWriteAll       = "/wall"
-	storageRESTMethodReadVersion    = "/rver"
-	storageRESTMethodReadXL         = "/rxl"
-	storageRESTMethodReadAll        = "/rall"
-	storageRESTMethodReadFile       = "/rfile"
-	storageRESTMethodReadFileStream = "/rfilest"
-	storageRESTMethodListDir        = "/ls"
-	storageRESTMethodDeleteVersions = "/dvers"
-	storageRESTMethodRenameFile     = "/rfile"
-	storageRESTMethodVerifyFile     = "/vfile"
-	storageRESTMethodStatInfoFile   = "/sfile"
-	storageRESTMethodReadMultiple   = "/rmpl"
-	storageRESTMethodCleanAbandoned = "/cln"
-	storageRESTMethodDeleteBulk     = "/dblk"
-	storageRESTMethodReadParts      = "/rps"
+    storageRESTMethodAppendFile     = "/afile"
+    storageRESTMethodCreateFile     = "/cfile"
+    storageRESTMethodWriteAll       = "/wall"
+    storageRESTMethodReadVersion    = "/rver"
+    storageRESTMethodReadXL         = "/rxl"
+    storageRESTMethodReadAll        = "/rall"
+    storageRESTMethodReadFile       = "/rfile"
+    storageRESTMethodReadFileStream = "/rfilest"
+    storageRESTMethodListDir        = "/ls"
+    storageRESTMethodDeleteVersions = "/dvers"
+    storageRESTMethodRenameFile     = "/rfile"
+    storageRESTMethodVerifyFile     = "/vfile"
+    storageRESTMethodStatInfoFile   = "/sfile"
+    storageRESTMethodReadMultiple   = "/rmpl"
+    storageRESTMethodCleanAbandoned = "/cln"
+    storageRESTMethodDeleteBulk     = "/dblk"
+    storageRESTMethodReadParts      = "/rps"
 )
 
 const (
-	storageRESTVolume           = "vol"
-	storageRESTVolumes          = "vols"
-	storageRESTDirPath          = "dpath"
-	storageRESTFilePath         = "fp"
-	storageRESTVersionID        = "vid"
-	storageRESTHealing          = "heal"
-	storageRESTTotalVersions    = "tvers"
-	storageRESTSrcVolume        = "svol"
-	storageRESTSrcPath          = "spath"
-	storageRESTDstVolume        = "dvol"
-	storageRESTDstPath          = "dpath"
-	storageRESTOffset           = "offset"
-	storageRESTLength           = "length"
-	storageRESTCount            = "count"
-	storageRESTBitrotAlgo       = "balg"
-	storageRESTBitrotHash       = "bhash"
-	storageRESTDiskID           = "did"
-	storageRESTForceDelete      = "fdel"
-	storageRESTGlob             = "glob"
-	storageRESTMetrics          = "metrics"
-	storageRESTDriveQuorum      = "dquorum"
-	storageRESTOrigVolume       = "ovol"
-	storageRESTInclFreeVersions = "incl-fv"
-	storageRESTRange            = "rng"
+    storageRESTVolume           = "vol"
+    storageRESTVolumes          = "vols"
+    storageRESTDirPath          = "dpath"
+    storageRESTFilePath         = "fp"
+    storageRESTVersionID        = "vid"
+    storageRESTHealing          = "heal"
+    storageRESTTotalVersions    = "tvers"
+    storageRESTSrcVolume        = "svol"
+    storageRESTSrcPath          = "spath"
+    storageRESTDstVolume        = "dvol"
+    storageRESTDstPath          = "dpath"
+    storageRESTOffset           = "offset"
+    storageRESTLength           = "length"
+    storageRESTCount            = "count"
+    storageRESTBitrotAlgo       = "balg"
+    storageRESTBitrotHash       = "bhash"
+    storageRESTDiskID           = "did"
+    storageRESTForceDelete      = "fdel"
+    storageRESTGlob             = "glob"
+    storageRESTMetrics          = "metrics"
+    storageRESTDriveQuorum      = "dquorum"
+    storageRESTOrigVolume       = "ovol"
+    storageRESTInclFreeVersions = "incl-fv"
+    storageRESTRange            = "rng"
 )
 
 type nsScannerOptions struct {
-	DiskID   string          `msg:"id"`
-	ScanMode int             `msg:"m"`
-	Cache    *dataUsageCache `msg:"c"`
+    DiskID   string          `msg:"id"`
+    ScanMode int             `msg:"m"`
+    Cache    *dataUsageCache `msg:"c"`
 }
 
 type nsScannerResp struct {
-	Update *dataUsageEntry `msg:"u"`
-	Final  *dataUsageCache `msg:"f"`
+    Update *dataUsageEntry `msg:"u"`
+    Final  *dataUsageCache `msg:"f"`
 }

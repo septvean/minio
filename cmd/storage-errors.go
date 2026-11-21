@@ -18,8 +18,8 @@
 package cmd
 
 import (
-	"context"
-	"errors"
+    "context"
+    "errors"
 )
 
 // errMaxVersionsExceeded return error beyond 10000 (default) versions per object
@@ -132,14 +132,14 @@ var errXLBackend = errors.New("XL backend requires fresh drive")
 type StorageErr string
 
 func (h StorageErr) Error() string {
-	return string(h)
+    return string(h)
 }
 
 // Collection of basic errors.
 var baseErrs = []error{
-	errDiskNotFound,
-	errFaultyDisk,
-	errFaultyRemoteDisk,
+    errDiskNotFound,
+    errFaultyDisk,
+    errFaultyRemoteDisk,
 }
 
 var baseIgnoredErrs = baseErrs
@@ -149,39 +149,39 @@ var baseIgnoredErrs = baseErrs
 // known errors into their typed form for top level
 // interpretation.
 func osErrToFileErr(err error) error {
-	if err == nil {
-		return nil
-	}
-	if osIsNotExist(err) {
-		return errFileNotFound
-	}
-	if osIsPermission(err) {
-		return errFileAccessDenied
-	}
-	if isSysErrNotDir(err) || isSysErrIsDir(err) {
-		return errFileNotFound
-	}
-	if isSysErrPathNotFound(err) {
-		return errFileNotFound
-	}
-	if isSysErrTooManyFiles(err) {
-		return errTooManyOpenFiles
-	}
-	if isSysErrHandleInvalid(err) {
-		return errFileNotFound
-	}
-	if isSysErrIO(err) {
-		return errFaultyDisk
-	}
-	if isSysErrInvalidArg(err) {
-		storageLogIf(context.Background(), err)
-		// For some odd calls with O_DIRECT reads
-		// filesystems can return EINVAL, handle
-		// these as FileNotFound instead.
-		return errFileNotFound
-	}
-	if isSysErrNoSpace(err) {
-		return errDiskFull
-	}
-	return err
+    if err == nil {
+        return nil
+    }
+    if osIsNotExist(err) {
+        return errFileNotFound
+    }
+    if osIsPermission(err) {
+        return errFileAccessDenied
+    }
+    if isSysErrNotDir(err) || isSysErrIsDir(err) {
+        return errFileNotFound
+    }
+    if isSysErrPathNotFound(err) {
+        return errFileNotFound
+    }
+    if isSysErrTooManyFiles(err) {
+        return errTooManyOpenFiles
+    }
+    if isSysErrHandleInvalid(err) {
+        return errFileNotFound
+    }
+    if isSysErrIO(err) {
+        return errFaultyDisk
+    }
+    if isSysErrInvalidArg(err) {
+        storageLogIf(context.Background(), err)
+        // For some odd calls with O_DIRECT reads
+        // filesystems can return EINVAL, handle
+        // these as FileNotFound instead.
+        return errFileNotFound
+    }
+    if isSysErrNoSpace(err) {
+        return errDiskFull
+    }
+    return err
 }

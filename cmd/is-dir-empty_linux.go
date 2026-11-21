@@ -21,23 +21,23 @@
 package cmd
 
 import (
-	"syscall"
+    "syscall"
 )
 
 // Returns true if no error and there is no object or prefix inside this directory
 func isDirEmpty(dirname string, legacy bool) bool {
-	if legacy {
-		// On filesystems such as btrfs, nfs this is not true, so fallback
-		// to performing readdir() instead.
-		entries, err := readDirN(dirname, 1)
-		if err != nil {
-			return false
-		}
-		return len(entries) == 0
-	}
-	var stat syscall.Stat_t
-	if err := syscall.Stat(dirname, &stat); err != nil {
-		return false
-	}
-	return stat.Mode&syscall.S_IFMT == syscall.S_IFDIR && stat.Nlink == 2
+    if legacy {
+        // On filesystems such as btrfs, nfs this is not true, so fallback
+        // to performing readdir() instead.
+        entries, err := readDirN(dirname, 1)
+        if err != nil {
+            return false
+        }
+        return len(entries) == 0
+    }
+    var stat syscall.Stat_t
+    if err := syscall.Stat(dirname, &stat); err != nil {
+        return false
+    }
+    return stat.Mode&syscall.S_IFMT == syscall.S_IFDIR && stat.Nlink == 2
 }

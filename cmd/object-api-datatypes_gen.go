@@ -3,8 +3,8 @@
 package cmd
 
 import (
-	"github.com/minio/minio/internal/bucket/replication"
-	"github.com/tinylib/msgp/msgp"
+    "github.com/minio/minio/internal/bucket/replication"
+    "github.com/tinylib/msgp/msgp"
 )
 
 // MarshalMsg implements msgp.Marshaler

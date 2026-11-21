@@ -31,18 +31,18 @@ const crossDomainXMLEntity = "/crossdomain.xml"
 // directed towards a domain other than its own, the remote domain needs to host a cross-domain
 // policy file that grants access to the source domain, allowing the client to continue the transaction.
 func setCrossDomainPolicyMiddleware(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cxml := crossDomainXML
-		if globalServerCtxt.CrossDomainXML != "" {
-			cxml = globalServerCtxt.CrossDomainXML
-		}
-		// Look for 'crossdomain.xml' in the incoming request.
-		if r.URL.Path == crossDomainXMLEntity {
-			// Write the standard cross domain policy xml.
-			w.Write([]byte(cxml))
-			// Request completed, no need to serve to other handlers.
-			return
-		}
-		h.ServeHTTP(w, r)
-	})
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        cxml := crossDomainXML
+        if globalServerCtxt.CrossDomainXML != "" {
+            cxml = globalServerCtxt.CrossDomainXML
+        }
+        // Look for 'crossdomain.xml' in the incoming request.
+        if r.URL.Path == crossDomainXMLEntity {
+            // Write the standard cross domain policy xml.
+            w.Write([]byte(cxml))
+            // Request completed, no need to serve to other handlers.
+            return
+        }
+        h.ServeHTTP(w, r)
+    })
 }

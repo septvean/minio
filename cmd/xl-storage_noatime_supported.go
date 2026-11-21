@@ -20,15 +20,15 @@
 package cmd
 
 import (
-	"os"
-	"syscall"
+    "os"
+    "syscall"
 )
 
 var (
-	// Disallow updating access times
-	// Add non-block to avoid syscall to attempt to set epoll on files.
-	readMode = os.O_RDONLY | 0x40000 | syscall.O_NONBLOCK // O_NOATIME
+    // Disallow updating access times
+    // Add non-block to avoid syscall to attempt to set epoll on files.
+    readMode = os.O_RDONLY | 0x40000 | syscall.O_NONBLOCK // O_NOATIME
 
-	// Write with data sync only used only for `xl.meta` writes
-	writeMode = 0x1000 | syscall.O_NONBLOCK // O_DSYNC
+    // Write with data sync only used only for `xl.meta` writes
+    writeMode = 0x1000 | syscall.O_NONBLOCK // O_DSYNC
 )

@@ -18,58 +18,58 @@
 package cmd
 
 import (
-	"slices"
-	"testing"
+    "slices"
+    "testing"
 
-	"gopkg.in/yaml.v3"
+    "gopkg.in/yaml.v3"
 )
 
 func TestBatchJobPrefix_UnmarshalYAML(t *testing.T) {
-	type args struct {
-		yamlStr string
-	}
-	type PrefixTemp struct {
-		Prefix BatchJobPrefix `yaml:"prefix"`
-	}
-	tests := []struct {
-		name    string
-		b       PrefixTemp
-		args    args
-		want    []string
-		wantErr bool
-	}{
-		{
-			name: "test1",
-			b:    PrefixTemp{},
-			args: args{
-				yamlStr: `
+    type args struct {
+        yamlStr string
+    }
+    type PrefixTemp struct {
+        Prefix BatchJobPrefix `yaml:"prefix"`
+    }
+    tests := []struct {
+        name    string
+        b       PrefixTemp
+        args    args
+        want    []string
+        wantErr bool
+    }{
+        {
+            name: "test1",
+            b:    PrefixTemp{},
+            args: args{
+                yamlStr: `
 prefix: "foo"
 `,
-			},
-			want:    []string{"foo"},
-			wantErr: false,
-		},
-		{
-			name: "test2",
-			b:    PrefixTemp{},
-			args: args{
-				yamlStr: `
+            },
+            want:    []string{"foo"},
+            wantErr: false,
+        },
+        {
+            name: "test2",
+            b:    PrefixTemp{},
+            args: args{
+                yamlStr: `
 prefix:
   - "foo"
   - "bar"
 `,
-			},
-			want: []string{"foo", "bar"},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := yaml.Unmarshal([]byte(tt.args.yamlStr), &tt.b); (err != nil) != tt.wantErr {
-				t.Errorf("UnmarshalYAML() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			if !slices.Equal(tt.b.Prefix.F(), tt.want) {
-				t.Errorf("UnmarshalYAML() = %v, want %v", tt.b.Prefix.F(), tt.want)
-			}
-		})
-	}
+            },
+            want: []string{"foo", "bar"},
+        },
+    }
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            if err := yaml.Unmarshal([]byte(tt.args.yamlStr), &tt.b); (err != nil) != tt.wantErr {
+                t.Errorf("UnmarshalYAML() error = %v, wantErr %v", err, tt.wantErr)
+            }
+            if !slices.Equal(tt.b.Prefix.F(), tt.want) {
+                t.Errorf("UnmarshalYAML() = %v, want %v", tt.b.Prefix.F(), tt.want)
+            }
+        })
+    }
 }

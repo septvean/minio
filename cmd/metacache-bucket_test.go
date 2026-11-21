@@ -18,51 +18,51 @@
 package cmd
 
 import (
-	"fmt"
-	"testing"
+    "fmt"
+    "testing"
 )
 
 func Benchmark_bucketMetacache_findCache(b *testing.B) {
-	bm := newBucketMetacache("", false)
-	const elements = 50000
-	const paths = 100
-	if elements%paths != 0 {
-		b.Fatal("elements must be divisible by the number of paths")
-	}
-	var pathNames [paths]string
-	for i := range pathNames[:] {
-		pathNames[i] = fmt.Sprintf("prefix/%d", i)
-	}
-	for i := range elements {
-		bm.findCache(listPathOptions{
-			ID:           mustGetUUID(),
-			Bucket:       "",
-			BaseDir:      pathNames[i%paths],
-			Prefix:       "",
-			FilterPrefix: "",
-			Marker:       "",
-			Limit:        0,
-			AskDisks:     "strict",
-			Recursive:    false,
-			Separator:    slashSeparator,
-			Create:       true,
-		})
-	}
-	b.ReportAllocs()
+    bm := newBucketMetacache("", false)
+    const elements = 50000
+    const paths = 100
+    if elements%paths != 0 {
+        b.Fatal("elements must be divisible by the number of paths")
+    }
+    var pathNames [paths]string
+    for i := range pathNames[:] {
+        pathNames[i] = fmt.Sprintf("prefix/%d", i)
+    }
+    for i := range elements {
+        bm.findCache(listPathOptions{
+            ID:           mustGetUUID(),
+            Bucket:       "",
+            BaseDir:      pathNames[i%paths],
+            Prefix:       "",
+            FilterPrefix: "",
+            Marker:       "",
+            Limit:        0,
+            AskDisks:     "strict",
+            Recursive:    false,
+            Separator:    slashSeparator,
+            Create:       true,
+        })
+    }
+    b.ReportAllocs()
 
-	for i := 0; b.Loop(); i++ {
-		bm.findCache(listPathOptions{
-			ID:           mustGetUUID(),
-			Bucket:       "",
-			BaseDir:      pathNames[i%paths],
-			Prefix:       "",
-			FilterPrefix: "",
-			Marker:       "",
-			Limit:        0,
-			AskDisks:     "strict",
-			Recursive:    false,
-			Separator:    slashSeparator,
-			Create:       true,
-		})
-	}
+    for i := 0; b.Loop(); i++ {
+        bm.findCache(listPathOptions{
+            ID:           mustGetUUID(),
+            Bucket:       "",
+            BaseDir:      pathNames[i%paths],
+            Prefix:       "",
+            FilterPrefix: "",
+            Marker:       "",
+            Limit:        0,
+            AskDisks:     "strict",
+            Recursive:    false,
+            Separator:    slashSeparator,
+            Create:       true,
+        })
+    }
 }

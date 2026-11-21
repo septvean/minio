@@ -18,28 +18,28 @@
 package cmd
 
 import (
-	"bytes"
-	"context"
-	"errors"
-	"fmt"
-	"io"
-	"math/rand"
-	"net/http"
-	"net/url"
-	"runtime"
-	"sync"
-	"time"
+    "bytes"
+    "context"
+    "errors"
+    "fmt"
+    "io"
+    "math/rand"
+    "net/http"
+    "net/url"
+    "runtime"
+    "sync"
+    "time"
 
-	"github.com/cespare/xxhash/v2"
-	"github.com/klauspost/compress/zip"
-	"github.com/minio/madmin-go/v3"
-	xioutil "github.com/minio/minio/internal/ioutil"
-	xnet "github.com/minio/pkg/v3/net"
-	"github.com/minio/pkg/v3/sync/errgroup"
-	"github.com/minio/pkg/v3/workers"
+    "github.com/cespare/xxhash/v2"
+    "github.com/klauspost/compress/zip"
+    "github.com/minio/madmin-go/v3"
+    xioutil "github.com/minio/minio/internal/ioutil"
+    xnet "github.com/minio/pkg/v3/net"
+    "github.com/minio/pkg/v3/sync/errgroup"
+    "github.com/minio/pkg/v3/workers"
 
-	"github.com/minio/minio/internal/bucket/bandwidth"
-	"github.com/minio/minio/internal/logger"
+    "github.com/minio/minio/internal/bucket/bandwidth"
+    "github.com/minio/minio/internal/logger"
 )
 
 // This file contains peer related notifications. For sending notifications to

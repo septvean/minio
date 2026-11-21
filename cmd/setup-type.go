@@ -21,33 +21,33 @@ package cmd
 type SetupType int
 
 const (
-	// UnknownSetupType - starts with unknown setup type.
-	UnknownSetupType SetupType = iota
+    // UnknownSetupType - starts with unknown setup type.
+    UnknownSetupType SetupType = iota
 
-	// FSSetupType - FS setup type enum.
-	FSSetupType
+    // FSSetupType - FS setup type enum.
+    FSSetupType
 
-	// ErasureSDSetupType - Erasure single drive setup enum.
-	ErasureSDSetupType
+    // ErasureSDSetupType - Erasure single drive setup enum.
+    ErasureSDSetupType
 
-	// ErasureSetupType - Erasure setup type enum.
-	ErasureSetupType
+    // ErasureSetupType - Erasure setup type enum.
+    ErasureSetupType
 
-	// DistErasureSetupType - Distributed Erasure setup type enum.
-	DistErasureSetupType
+    // DistErasureSetupType - Distributed Erasure setup type enum.
+    DistErasureSetupType
 )
 
 func (setupType SetupType) String() string {
-	switch setupType {
-	case FSSetupType:
-		return globalMinioModeFS
-	case ErasureSDSetupType:
-		return globalMinioModeErasureSD
-	case ErasureSetupType:
-		return globalMinioModeErasure
-	case DistErasureSetupType:
-		return globalMinioModeDistErasure
-	}
+    switch setupType {
+    case FSSetupType:
+        return globalMinioModeFS
+    case ErasureSDSetupType:
+        return globalMinioModeErasureSD
+    case ErasureSetupType:
+        return globalMinioModeErasure
+    case DistErasureSetupType:
+        return globalMinioModeDistErasure
+    }
 
-	return "unknown"
+    return "unknown"
 }

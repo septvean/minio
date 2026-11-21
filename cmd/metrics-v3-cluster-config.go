@@ -20,27 +20,27 @@ package cmd
 import "context"
 
 const (
-	configRRSParity      = "rrs_parity"
-	configStandardParity = "standard_parity"
+    configRRSParity      = "rrs_parity"
+    configStandardParity = "standard_parity"
 )
 
 var (
-	configRRSParityMD = NewGaugeMD(configRRSParity,
-		"Reduced redundancy storage class parity")
-	configStandardParityMD = NewGaugeMD(configStandardParity,
-		"Standard storage class parity")
+    configRRSParityMD = NewGaugeMD(configRRSParity,
+        "Reduced redundancy storage class parity")
+    configStandardParityMD = NewGaugeMD(configStandardParity,
+        "Standard storage class parity")
 )
 
 // loadClusterConfigMetrics - `MetricsLoaderFn` for cluster config
 // such as standard and RRS parity.
 func loadClusterConfigMetrics(ctx context.Context, m MetricValues, c *metricsCache) error {
-	clusterDriveMetrics, err := c.clusterDriveMetrics.Get()
-	if err != nil {
-		metricsLogIf(ctx, err)
-	} else {
-		m.Set(configStandardParity, float64(clusterDriveMetrics.storageInfo.Backend.StandardSCParity))
-		m.Set(configRRSParity, float64(clusterDriveMetrics.storageInfo.Backend.RRSCParity))
-	}
+    clusterDriveMetrics, err := c.clusterDriveMetrics.Get()
+    if err != nil {
+        metricsLogIf(ctx, err)
+    } else {
+        m.Set(configStandardParity, float64(clusterDriveMetrics.storageInfo.Backend.StandardSCParity))
+        m.Set(configRRSParity, float64(clusterDriveMetrics.storageInfo.Backend.RRSCParity))
+    }
 
-	return nil
+    return nil
 }

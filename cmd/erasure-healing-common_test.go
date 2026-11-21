@@ -18,16 +18,16 @@
 package cmd
 
 import (
-	"bytes"
-	"context"
-	"fmt"
-	"os"
-	"path/filepath"
-	"runtime"
-	"testing"
-	"time"
+    "bytes"
+    "context"
+    "fmt"
+    "os"
+    "path/filepath"
+    "runtime"
+    "testing"
+    "time"
 
-	"github.com/minio/madmin-go/v3"
+    "github.com/minio/madmin-go/v3"
 )
 
 // Returns the latest updated FileInfo files and error in case of failure.

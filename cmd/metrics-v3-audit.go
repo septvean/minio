@@ -18,40 +18,40 @@
 package cmd
 
 import (
-	"context"
+    "context"
 
-	"github.com/minio/minio/internal/logger"
+    "github.com/minio/minio/internal/logger"
 )
 
 const (
-	auditFailedMessages    = "failed_messages"
-	auditTargetQueueLength = "target_queue_length"
-	auditTotalMessages     = "total_messages"
-	targetID               = "target_id"
+    auditFailedMessages    = "failed_messages"
+    auditTargetQueueLength = "target_queue_length"
+    auditTotalMessages     = "total_messages"
+    targetID               = "target_id"
 )
 
 var (
-	auditFailedMessagesMD = NewCounterMD(auditFailedMessages,
-		"Total number of messages that failed to send since start",
-		targetID)
-	auditTargetQueueLengthMD = NewGaugeMD(auditTargetQueueLength,
-		"Number of unsent messages in queue for target",
-		targetID)
-	auditTotalMessagesMD = NewCounterMD(auditTotalMessages,
-		"Total number of messages sent since start",
-		targetID)
+    auditFailedMessagesMD = NewCounterMD(auditFailedMessages,
+        "Total number of messages that failed to send since start",
+        targetID)
+    auditTargetQueueLengthMD = NewGaugeMD(auditTargetQueueLength,
+        "Number of unsent messages in queue for target",
+        targetID)
+    auditTotalMessagesMD = NewCounterMD(auditTotalMessages,
+        "Total number of messages sent since start",
+        targetID)
 )
 
 // loadAuditMetrics - `MetricsLoaderFn` for audit
 // such as failed messages and total messages.
 func loadAuditMetrics(_ context.Context, m MetricValues, c *metricsCache) error {
-	audit := logger.CurrentStats()
-	for id, st := range audit {
-		labels := []string{targetID, id}
-		m.Set(auditFailedMessages, float64(st.FailedMessages), labels...)
-		m.Set(auditTargetQueueLength, float64(st.QueueLength), labels...)
-		m.Set(auditTotalMessages, float64(st.TotalMessages), labels...)
-	}
+    audit := logger.CurrentStats()
+    for id, st := range audit {
+        labels := []string{targetID, id}
+        m.Set(auditFailedMessages, float64(st.FailedMessages), labels...)
+        m.Set(auditTargetQueueLength, float64(st.QueueLength), labels...)
+        m.Set(auditTotalMessages, float64(st.TotalMessages), labels...)
+    }
 
-	return nil
+    return nil
 }
